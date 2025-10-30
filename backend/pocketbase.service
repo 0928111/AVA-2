@@ -1,0 +1,13 @@
+[Unit]
+Description=PocketBase service
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/AVA-2/backend
+ExecStart=/var/www/AVA-2/backend/pocketbase serve --dir /var/www/AVA-2/backend/pb_data
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  pocketbase:
+    image: ghcr.io/pocketbase/pocketbase:0.31.0
+    container_name: pocketbase
+    volumes:
+      - ./backend/pb_data:/pb_data
+    ports:
+      - "8090:8090"
+    command: ["serve", "--dir", "/pb_data"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: ava_frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
