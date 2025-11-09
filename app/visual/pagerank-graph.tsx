@@ -218,10 +218,10 @@ const PageRankGraph: React.FC<Props> = ({ json, messageId, currentStep = 0 }) =>
           .selectAll("text")
           .data(nodes)
           .enter().append("text")
-          .text((d: any) => `PR: ${(d.rank || 0.15).toFixed(3)}`)
+          .text((d: any) => (d.rank || 0.15).toFixed(3))  // 简化显示，只显示数值
           .attr("text-anchor", "middle")
-          .attr("dy", "2.2em")  // 增加垂直间距，避免与节点标签重叠
-          .attr("font-size", "11px")  // 增大字体
+          .attr("dy", "2.8em")  // 进一步增加垂直间距，避开边的显示区域
+          .attr("font-size", "10px")  // 适当减小字体，更精致
           .attr("font-weight", "700")  // 加粗字体
           .attr("fill", "#1e293b")  // 使用更深的颜色提高对比度
           .attr("stroke", "#ffffff")  // 添加白色描边

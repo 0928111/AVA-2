@@ -115,10 +115,16 @@ const PageRankAnimation: React.FC<PageRankAnimationProps> = ({ currentStep }) =>
     nodeA.append('text')
       .attr('id', 'prA')
       .attr('x', x1)
-      .attr('y', y1 + 25)
+      .attr('y', y1 + 30)  // 增加垂直间距，避开边的显示区域
       .attr('text-anchor', 'middle')
       .attr('class', 'text-xs fill-slate-500')
-      .text(`PR: ${currentData.a.toFixed(2)}`);
+      .attr('stroke', '#ffffff')  // 添加白色描边
+      .attr('stroke-width', '2px')  // 增加描边宽度，防止被线条遮挡
+      .attr('paint-order', 'stroke')  // 确保描边在填充下方
+      .attr('stroke-linejoin', 'round')  // 描边角圆滑
+      .attr('stroke-linecap', 'round')  // 描边线端圆滑
+      .style('font-weight', '700')  // 加粗字体
+      .text(currentData.a.toFixed(2));  // 简化显示，只显示数值
 
     // 节点B
     const nodeB = svg.append('g')
@@ -146,10 +152,16 @@ const PageRankAnimation: React.FC<PageRankAnimationProps> = ({ currentStep }) =>
     nodeB.append('text')
       .attr('id', 'prB')
       .attr('x', x2)
-      .attr('y', y2 + 25)
+      .attr('y', y2 + 30)  // 增加垂直间距，避开边的显示区域
       .attr('text-anchor', 'middle')
       .attr('class', 'text-xs fill-slate-500')
-      .text(`PR: ${currentData.b.toFixed(2)}`);
+      .attr('stroke', '#ffffff')  // 添加白色描边
+      .attr('stroke-width', '2px')  // 增加描边宽度，防止被线条遮挡
+      .attr('paint-order', 'stroke')  // 确保描边在填充下方
+      .attr('stroke-linejoin', 'round')  // 描边角圆滑
+      .attr('stroke-linecap', 'round')  // 描边线端圆滑
+      .style('font-weight', '700')  // 加粗字体
+      .text(currentData.b.toFixed(2));  // 简化显示，只显示数值
 
   }, [currentStep]);
 
