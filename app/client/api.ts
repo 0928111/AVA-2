@@ -30,6 +30,7 @@ export interface ChatOptions {
   messages: RequestMessage[];
   config: LLMConfig;
   conversationId?: string;
+  studentId?: string; // 添加学号参数
 
   onUpdate?: (message: string, chunk: string) => void;
   onFinish: (message: string) => void;

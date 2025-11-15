@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./home.module.scss";
 import {
@@ -19,6 +20,9 @@ import type { GraphData } from "../api/protocols/pagerank-protocol";
 
 // 引入现有的API客户端
 import { api } from "../client/api";
+
+// 引入学号管理工具
+import { hasStudentId, getStudentId } from "../utils/student-id";
 
 // 右侧输入框的发送图标
 const SendWhiteIcon = () => (
@@ -66,6 +70,7 @@ type ChatBubble = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [statusText, setStatusText] =
     useState("初始化阶段：所有节点权重相同。");
@@ -228,6 +233,15 @@ Explain the algorithm clearly and show how the PageRank values change with each 
     const trimmed = inputValue.trim();
     if (!trimmed || isLoading) return;
 
+    // 学号验证 - 简化为只读一次当前学号
+    const studentId = getStudentId();
+    if (!studentId) {
+      // 学号失效，提示并跳回登录页
+      alert("学号失效，请重新登录");
+      router.replace("/login");
+      return;
+    }
+
     const userMessage: ChatBubble = { type: "user", content: trimmed };
     const newChatMessages = [...chatMessages, userMessage];
     setChatMessages(newChatMessages);
@@ -256,6 +270,7 @@ Explain the algorithm clearly and show how the PageRank values change with each 
       console.log("- 图数据节点数:", graphData.nodes.length);
       console.log("- 图数据边数:", graphData.links.length);
       console.log("- 算法类型:", graphData.algo);
+      console.log("- 学号:", studentId);
 
       // 使用api.llm.chat调用Coze接口
       await api.llm.chat({
@@ -275,6 +290,7 @@ Explain the algorithm clearly and show how the PageRank values change with each 
           model: "coze-bot",
           stream: false, // 关闭流式输出，简化问题
         },
+        studentId: studentId, // 传递学号信息
         onFinish: (aiText: string) => {
           console.log("[Home] 收到AI完整回答，长度", aiText.length);
 
@@ -393,6 +409,36 @@ Explain the algorithm clearly and show how the PageRank values change with each 
       chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
     }
   }, [chatMessages]);
+
+  // 学号检查和初始化 - 路由守卫
+  useEffect(() => {
+    const checkStudentId = () => {
+      const hasId = hasStudentId();
+      const studentId = getStudentId();
+
+      console.log("[Home] 学号状态检查:", { hasStudentId: hasId, studentId });
+
+      // 如果没有学号，跳转到登录页
+      if (!hasId) {
+        console.log("[Home] 未检测到学号，跳转到登录页");
+        router.replace("/login");
+      }
+    };
+
+    checkStudentId();
+
+    // 监听storage变化，支持多个标签页同步
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "student_id") {
+        checkStudentId();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [router]);
+
+  // 处理学号输入 - 已废弃，使用路由守卫替代
 
   return (
     <div className={styles["home-container"]}>

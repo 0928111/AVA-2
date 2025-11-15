@@ -33,7 +33,8 @@ function getCozeConfig(): CozeConfig {
   };
 }
 
-async function requestCoze(req: NextRequest, path: string) {
+// 导出给其它路由复用（例如 /api/chat/proxy）
+export async function requestCoze(req: NextRequest, path: string) {
   const config = getCozeConfig();
 
   console.log(

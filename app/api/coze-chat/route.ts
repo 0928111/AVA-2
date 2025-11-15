@@ -121,12 +121,12 @@ async function handleCozeChatRequest(req: NextRequest) {
     const lastMessage = messages[messages.length - 1];
 
     console.log("[Coze Chat Route] Starting chat with polling:");
-    console.log("- Bot ID:", bot_id || config.botId);
     console.log("- User message:", lastMessage.content);
+    console.log("- Using fixed bot_id from config:", config.botId);
 
-    // 构建请求payload
+    // 构建请求payload - 只使用环境变量中的 bot_id，忽略请求体中的 bot_id
     const cozePayload = {
-      bot_id: bot_id || config.botId,
+      bot_id: config.botId,
       user_id: "user",
       stream: false,
       auto_save_history: true,
@@ -138,6 +138,11 @@ async function handleCozeChatRequest(req: NextRequest) {
         },
       ],
     };
+
+    console.log(
+      "[Coze Chat Route] Full payload:",
+      JSON.stringify(cozePayload, null, 2),
+    );
 
     // 使用createAndPoll功能 - 等待对话完成
     const result = await createAndPoll(config, cozePayload);

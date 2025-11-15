@@ -1,4 +1,4 @@
-import { REQUEST_TIMEOUT_MS } from "@/app/constant";
+import { getClientConfig } from "@/app/config/client";
 import { useAccessStore, useAppConfig, useChatStore } from "@/app/store";
 
 import { ChatOptions, LLMApi } from "../api";
@@ -8,7 +8,7 @@ import {
   fetchEventSource,
 } from "@fortaine/fetch-event-source";
 import { prettyObject } from "@/app/utils/format";
-import { getClientConfig } from "@/app/config/client";
+import { getStudentId } from "@/app/utils/student-id";
 
 // 注意：这些接口定义保留用于向后兼容性，
 // 但新的实现使用OpenAI兼容格式通过 /api/coze-chat 路由
@@ -58,6 +58,16 @@ export class CozeApi implements LLMApi {
     this.apiKey = "";
   }
 
+  // 从localStorage获取学号
+  private getStudentIdFromStorage(): string | null {
+    try {
+      return getStudentId();
+    } catch (error) {
+      console.warn("[Coze] Failed to get student ID from storage:", error);
+      return null;
+    }
+  }
+
   path(path: string): string {
     // 这个方法现在主要用于向后兼容性
     // 新的实现直接使用 /api/coze-chat 路由
@@ -79,7 +89,7 @@ export class CozeApi implements LLMApi {
       );
       return assistantMessage?.content ?? "";
     }
-    return res.data?.content ?? "";
+    return "";
   }
 
   async chat(options: ChatOptions) {
@@ -89,20 +99,22 @@ export class CozeApi implements LLMApi {
     const sessionId = useChatStore.getState().currentSession().id;
     const userId = `user_${sessionId}`;
 
+    // 获取学号信息（从ChatOptions中获取）
+    const studentId = options.studentId || this.getStudentIdFromStorage();
+
     const shouldStream = !!options.config.stream;
     const controller = new AbortController();
     options.onController?.(controller);
 
     try {
-      // 使用新的完整流程API路由 - 确保获取完整回复
-      const chatPath = "/api/coze-chat";
+      // 使用新的聊天代理路由 - 支持配额管理和消息存档
+      const chatPath = "/api/chat/proxy";
 
-      // 构建请求payload
+      // 构建请求payload - 适配新的代理路由格式
       const requestPayload = {
+        student_id: studentId, // 学号放在顶层
         messages: messages,
         bot_id: this.botId,
-        user_id: userId,
-        stream: shouldStream,
       };
 
       console.log("[Coze-Chat] Request payload: ", requestPayload);
@@ -123,7 +135,7 @@ export class CozeApi implements LLMApi {
       // 设置请求超时
       const requestTimeoutId = setTimeout(
         () => controller.abort(),
-        REQUEST_TIMEOUT_MS,
+        30000, // 30秒超时
       );
 
       if (shouldStream) {
@@ -168,6 +180,11 @@ export class CozeApi implements LLMApi {
 
               if (res.status === 401) {
                 responseTexts.push(Locale.Error.Unauthorized);
+              }
+
+              // 处理配额不足的情况
+              if (res.status === 429) {
+                responseTexts.push("本期额度已用完，请稍后再试");
               }
 
               if (extraInfo) {
@@ -225,6 +242,12 @@ export class CozeApi implements LLMApi {
         if (!res.ok) {
           const errorText = await res.text();
           console.error(`[Coze-Chat] HTTP ${res.status} error:`, errorText);
+
+          // 处理配额不足的情况
+          if (res.status === 429) {
+            throw new Error("本期额度已用完，请稍后再试");
+          }
+
           throw new Error(`HTTP ${res.status}: ${errorText}`);
         }
 

@@ -10781,6 +10781,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pocketbase@npm:^0.26.3":
+  version: 0.26.3
+  resolution: "pocketbase@npm:0.26.3"
+  checksum: 10c0/01fe63cf7465f7512decbcd4b39fe68e510cf2c591c0806b797c226f938d1d291166bbc016f59f0beb9448019989f3a190e47362d8bc5774768d0ad424e8a1a2
+  languageName: node
+  linkType: hard
+
 "posix-character-classes@npm:^0.1.0":
   version: 0.1.1
   resolution: "posix-character-classes@npm:0.1.1"
@@ -13116,6 +13123,7 @@ __metadata:
     mermaid: "npm:^10.6.1"
     nanoid: "npm:^5.0.3"
     next: "npm:^14.1.1"
+    pocketbase: "npm:^0.26.3"
     prettier: "npm:^3.0.3"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
