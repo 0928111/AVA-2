@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSideConfig } from "@/app/config/server";
 import { auth } from "../../auth";
 
-// 支持的 Coze 子路径
-export enum CozePath {
+// 支持 Coze 子路径
+enum CozePath {
   ChatPath = "v3/chat",
   BotPath = "v3/bot",
 }
@@ -33,17 +33,9 @@ function getCozeConfig(): CozeConfig {
   };
 }
 
-// 导出给其它路由复用（例如 /api/chat/proxy）
-export async function requestCoze(req: NextRequest, path: string) {
+// 内部请求 Coze 的工具函数
+async function requestCoze(req: NextRequest, path: string) {
   const config = getCozeConfig();
-
-  console.log(
-    "[CozeConfig] apiKey prefix:",
-    config.apiKey.slice(0, 8),
-    "len:",
-    config.apiKey.length,
-  );
-  console.log("[CozeConfig] baseUrl:", config.baseUrl);
 
   if (!config.apiKey) {
     throw new Error("Coze API key is not configured");
@@ -95,11 +87,12 @@ export async function requestCoze(req: NextRequest, path: string) {
       signal: controller.signal,
     });
 
-    // 网络层错误直接抛出
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
       throw new Error(
-        `HTTP ${response.status} from Coze: ${errorText || response.statusText}`,
+        `HTTP ${response.status} from Coze: ${
+          errorText || response.statusText
+        }`,
       );
     }
 
