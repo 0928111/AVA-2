@@ -78,7 +78,7 @@ async function handleChatProxyRequest(req: NextRequest) {
     try {
       // 先尝试查找学生
       const records = await pb.collection("students").getList(1, 1, {
-        filter: `sutdents_id = "${student_id}"`,
+        filter: `student_id = "${student_id}"`,
       });
 
       if (records.items.length > 0) {
@@ -87,7 +87,7 @@ async function handleChatProxyRequest(req: NextRequest) {
       } else {
         // 创建新学生记录
         student = await pb.collection("students").create({
-          sutdents_id: student_id,
+          student_id: student_id,
           quota: 100, // 默认配额
           used: 0,
           // 移除 created_at，让数据库自动生成
