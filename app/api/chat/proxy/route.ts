@@ -247,7 +247,7 @@ async function handleChatProxyRequest(req: NextRequest) {
 
       await pb.collection("messages").create({
         conversation: conversation.id, // 使用正确的关联字段名
-        role: "bot", // 尝试使用 "bot"
+        role: "assistant", // 使用正确的角色名称
         content: assistantContent,
         // 移除 created_at，让数据库自动生成
       });
