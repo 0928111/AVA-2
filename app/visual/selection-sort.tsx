@@ -9,7 +9,12 @@ interface BarChartProps {
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
+const SelectionSort: React.FC<Props> = ({
+  data,
+  compareidx,
+  newData,
+  messageId,
+}: Props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
@@ -21,7 +26,7 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
     const marginLeft = 40;
     const x = d3
       .scaleBand()
-      .domain(data.map((_, idx) => idx.toString()))
+      .domain(data ? data.map((_, idx) => idx.toString()) : [])
       .range([marginLeft, width - marginRight])
       .padding(0.15);
 
@@ -29,7 +34,7 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(data) as number])
+      .domain([0, data ? (d3.max(data) as number) : 0])
       .nice()
       .range([height - marginBottom, marginTop]);
 
@@ -44,7 +49,7 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
 
     const bars = svgElement
       .selectAll(".bar")
-      .data(data)
+      .data(data || [])
       .enter()
       .append("g")
       .attr("class", "bar")
@@ -52,9 +57,10 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
 
     bars
       .append("rect")
-      .attr("x", (_, idx) => x(idx.toString()) as number)
-      .attr("y", (d) => y(d) as number)
-      .attr("height", (d) => y(0) - (y(d) as number))
+      .attr("x", (_: number, idx: number) => x(idx.toString()) as number)
+      .attr("y", (d: number) => y(d) as number)
+      .attr("width", x.bandwidth())
+      .attr("height", (d: number) => y(0) - (y(d) as number))
       .attr("width", x.bandwidth() as number)
       .attr("fill", "steelblue");
 
@@ -73,7 +79,7 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
       .call(
         d3
           .axisLeft(y)
-          .ticks(d3.max(data) as number)
+          .ticks(data ? (d3.max(data) as number) : 0)
           .tickFormat(d3.format(".0f")),
       )
       .selectAll("text")
@@ -138,16 +144,21 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
 
       return { changedIndexes, finalPositions };
     }
-    const diffIndices = findArrayDifference(data, newData);
+    const diffIndices =
+      data && newData ? findArrayDifference(data, newData) : null;
     async function highlightBars(diffIndices: number[][]) {
-      const sortedIndexes = findSortedIndexes(data);
+      const sortedIndexes = data ? findSortedIndexes(data) : [];
       let selector = "A" + messageId;
       const lastsvg2 = d3.select(`#${selector}`);
       sortedIndexes.forEach((index) => {
         const bar = lastsvg2.select(`.bar:nth-child(${index + 1})`);
         bar.select("rect").attr("fill", "green");
       });
-      for (let i = diffIndices[0][0]; i < data.length; i++) {
+      for (
+        let i = diffIndices && diffIndices[0] ? diffIndices[0][0] : 0;
+        i < (data ? data.length : 0);
+        i++
+      ) {
         let bar2 = lastsvg2.select(`.bar:nth-child(${i + 1})`);
         const colorTween2 = (startColor: string, endColor: string) => {
           return function (t: number) {
@@ -155,7 +166,7 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
             bar2.select("rect").attr("fill", interpolateColor(t));
           };
         };
-        if (i === data.length - 1) {
+        if (data && i === data.length - 1) {
           bar2
             .transition()
             .duration(300)
@@ -168,7 +179,11 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
             .on("end", () => {
               chart();
             });
-        } else if (i === diffIndices[0][0] || i === diffIndices[0][1]) {
+        } else if (
+          diffIndices &&
+          diffIndices[0] &&
+          (i === diffIndices[0][0] || i === diffIndices[0][1])
+        ) {
           bar2
             .transition()
             .duration(300)
@@ -189,8 +204,8 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
         await sleep(900);
       }
     }
-    function staticChart(){
-      const sortedIndexes = findSortedIndexes(data);
+    function staticChart() {
+      const sortedIndexes = data ? findSortedIndexes(data) : [];
       let selector = "A" + messageId;
       const lastsvg = d3.select(`#${selector}`);
       sortedIndexes.forEach((index) => {
@@ -205,7 +220,9 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
 
       if (diffIndices !== null) {
         const { changedIndexes, finalPositions } =
-          findIndexChangesAndFinalPosition(data, newData);
+          data && newData
+            ? findIndexChangesAndFinalPosition(data, newData)
+            : { changedIndexes: [], finalPositions: [] };
         for (const [i, diffIndex] of diffIndices.entries()) {
           const mov = lastsvg.select(`.bar:nth-child(${diffIndex[0] + 1})`);
           const moveDistance = x.step() * (diffIndex[1] - diffIndex[0]);
@@ -241,6 +258,8 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
       }
     }
     if (
+      data &&
+      newData &&
       !data.every((element, index) => element === newData[index]) &&
       newData.length >= 5 &&
       !isSorted(data)
@@ -248,10 +267,14 @@ const SelectionSort: React.FC<Props> = ({ data, newData, messageId }) => {
       if (diffIndices !== null) {
         highlightBars(diffIndices);
       }
-    }else{
+    } else {
       staticChart();
     }
   }, [data, newData, messageId]);
+
+  if (!data || !newData) {
+    return null;
+  }
 
   return (
     <div style={{ width: "200px", height: "150px" }}>

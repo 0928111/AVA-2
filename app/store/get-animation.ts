@@ -1,5 +1,6 @@
 import { Props, graphType } from "../components/visual-props";
 import { ChatSession } from "./chat";
+import { ChatMessage } from "../utils/message";
 import {
   extractArrayFromString,
   extractJSONContent_original,
@@ -67,9 +68,7 @@ export function getAni(
   message: string,
   id: string,
 ): [Props, ChatSession] {
-  if (
-    session.mask.name == "Bubble Sort"
-  ) {
+  if (session.mask.name == "Bubble Sort") {
     const extractedData = extractLastArrayFromString(message);
     const arrayData = Array.isArray(extractedData) ? extractedData : [];
 
@@ -77,7 +76,7 @@ export function getAni(
       console.log("there is no array in message");
       console.log("olddata:", session.sortdata.oldData);
       console.log("newdata:", session.sortdata.newData);
-      return [emptyprops, session]; 
+      return [emptyprops, session];
     } else if (
       //First appearance of array in message: display static array
       session.sortdata.oldData.length == 1 &&
@@ -97,7 +96,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else if (
       //Back to step 1: Displaying a static array
       compareArrays(
@@ -120,7 +119,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else {
       console.log("Normal");
       console.log("olddata:", session.sortdata.oldData);
@@ -137,7 +136,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      session.sortdata.oldData = session.sortdata.newData; 
+      session.sortdata.oldData = session.sortdata.newData;
       return [barchartprops, session];
     }
   }
@@ -149,7 +148,7 @@ export function getAni(
     const arrayData = Array.isArray(extractedData) ? extractedData : [];
 
     if (arrayData.length == 1 && arrayData[0] == 1) {
-      return [emptyprops, session]; 
+      return [emptyprops, session];
     } else if (
       session.sortdata.oldData.length == 1 &&
       session.sortdata.oldData[0] == 0
@@ -165,7 +164,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else if (
       compareArrays(
         session.sortdata.newData,
@@ -184,7 +183,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else {
       console.log("olddata:", session.sortdata.oldData);
       console.log("newdata:", session.sortdata.newData);
@@ -199,7 +198,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      session.sortdata.oldData = session.sortdata.newData; 
+      session.sortdata.oldData = session.sortdata.newData;
       return [barchartprops, session];
     }
   }
@@ -209,9 +208,8 @@ export function getAni(
     const extractedData = extractLastArrayFromString(message);
     const arrayData = Array.isArray(extractedData) ? extractedData : [];
 
-
     if (arrayData.length == 1 && arrayData[0] == 1) {
-      return [emptyprops, session]; 
+      return [emptyprops, session];
     } else if (
       session.sortdata.oldData.length == 1 &&
       session.sortdata.oldData[0] == 0
@@ -228,7 +226,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else if (
       compareArrays(
         session.sortdata.newData,
@@ -248,7 +246,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else {
       session.sortdata.newData = arrayData;
 
@@ -261,7 +259,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      session.sortdata.oldData = session.sortdata.newData; 
+      session.sortdata.oldData = session.sortdata.newData;
       return [barchartprops, session];
     }
   }
@@ -271,7 +269,7 @@ export function getAni(
     const extractedData = extractArrayFromString(message);
     const arrayData = Array.isArray(extractedData) ? extractedData : [];
     if (arrayData.length == 1 && arrayData[0] == 1) {
-      return [emptyprops, session]; 
+      return [emptyprops, session];
     } else if (
       session.sortdata.oldData.length == 1 &&
       session.sortdata.oldData[0] == 0
@@ -287,7 +285,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      return [barchartprops, session]; 
+      return [barchartprops, session];
     } else {
       session.sortdata.newData = arrayData;
 
@@ -300,7 +298,7 @@ export function getAni(
         compareidx: -1,
         number: -1,
       };
-      session.sortdata.oldData = session.sortdata.newData; 
+      session.sortdata.oldData = session.sortdata.newData;
       return [barchartprops, session];
     }
   }
@@ -421,9 +419,7 @@ export function getAni(
   }
 
   // // ****************************Linear Search****************************
-  if (
-    session.mask.name == "Linear Search"
-  ) {
+  if (session.mask.name == "Linear Search") {
     console.log("Linear Search");
     const contains5list = contains5ElementList(message);
     if (contains5list) {
@@ -464,31 +460,34 @@ export function getAni(
       return [emptyprops, session];
     }
   }
-// ***************************************************Connected Components***********************************************
-  if (session.mask.name == "Identifying Connected Components in an Undirected Graph") {
+  // ***************************************************Connected Components***********************************************
+  if (
+    session.mask.name ==
+    "Identifying Connected Components in an Undirected Graph"
+  ) {
     const { extracted, remaining } = extractJSONContent_original(message);
     const extracted_json = JSON.parse(extracted as string) as graphType;
-      let graphprops: Props = {
-        type: "component",
-        number: -1,
-        data: [],
-        messageId: id,
-        maxidx: -1,
-        compareidx: -1,
-        newData: [],
-        json: extracted_json as graphType,
-      };
-      if (extracted === null){
-        graphprops = emptyprops;  
-      }
-      return [graphprops, session];
+    let graphprops: Props = {
+      type: "component",
+      number: -1,
+      data: [],
+      messageId: id,
+      maxidx: -1,
+      compareidx: -1,
+      newData: [],
+      json: extracted_json as graphType,
+    };
+    if (extracted === null) {
+      graphprops = emptyprops;
+    }
+    return [graphprops, session];
   }
   // ***************************************************Check Connectivity***********************************************
   if (session.mask.name == "Graph Connectivity Problem") {
-      const { extracted, remaining } = extractJSONContent_original(message);
-      const extracted_json = JSON.parse(extracted as string) as graphType;
-      
-      let graphprops: Props = {
+    const { extracted, remaining } = extractJSONContent_original(message);
+    const extracted_json = JSON.parse(extracted as string) as graphType;
+
+    let graphprops: Props = {
       type: "check connectivity",
       number: -1,
       data: [],
@@ -497,20 +496,20 @@ export function getAni(
       compareidx: -1,
       newData: [],
       json: extracted_json as graphType,
-      };
+    };
 
-      if (extracted === null){
-        graphprops = emptyprops;  
-      }
+    if (extracted === null) {
+      graphprops = emptyprops;
+    }
 
-      return [graphprops, session];
+    return [graphprops, session];
   }
-    // ***************************************************Check Cycle***********************************************
+  // ***************************************************Check Cycle***********************************************
   if (session.mask.name == "Detecting Cycles in a Directed Graph") {
-      const { extracted, remaining } = extractJSONContent_original(message);
-      const extracted_json = JSON.parse(extracted as string) as graphType;
-      
-      let graphprops: Props = {
+    const { extracted, remaining } = extractJSONContent_original(message);
+    const extracted_json = JSON.parse(extracted as string) as graphType;
+
+    let graphprops: Props = {
       type: "check_cycle",
       number: -1,
       data: [],
@@ -519,20 +518,20 @@ export function getAni(
       compareidx: -1,
       newData: [],
       json: extracted_json as graphType,
-      };
+    };
 
-      if (extracted === null){
-        graphprops = emptyprops;  
-      }
-      return [graphprops, session];
+    if (extracted === null) {
+      graphprops = emptyprops;
     }
+    return [graphprops, session];
+  }
 
   // ***************************************************PageRank***********************************************
   if (session.mask.name == "PageRank Algorithm") {
-      const { extracted, remaining } = extractJSONContent_original(message);
-      const extracted_json = JSON.parse(extracted as string) as graphType;
-      
-      let graphprops: Props = {
+    const { extracted, remaining } = extractJSONContent_original(message);
+    const extracted_json = JSON.parse(extracted as string) as graphType;
+
+    let graphprops: Props = {
       type: "pagerank",
       number: -1,
       data: [],
@@ -541,14 +540,13 @@ export function getAni(
       compareidx: -1,
       newData: [],
       json: extracted_json as graphType,
-      };
+    };
 
-      if (extracted === null){
-        graphprops = emptyprops;  
-      }
-      return [graphprops, session];
+    if (extracted === null) {
+      graphprops = emptyprops;
     }
+    return [graphprops, session];
+  }
 
   return [emptyprops, session];
-  
 }

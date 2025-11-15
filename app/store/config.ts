@@ -28,25 +28,25 @@ export enum Theme {
 export const DEFAULT_CONFIG = {
   lastUpdate: Date.now(), // timestamp, to merge state
 
-  submitKey: isMacOS() ? SubmitKey.MetaEnter : SubmitKey.CtrlEnter,
+  submitKey: SubmitKey.CtrlEnter as SubmitKey,
   avatar: "1f603",
   fontSize: 14,
-  theme: Theme.Light as Theme,
-  tightBorder: !!getClientConfig()?.isApp,
+  theme: Theme.Auto as Theme,
+  tightBorder: true,
   sendPreviewBubble: true,
   enableAutoGenerateTitle: true,
-  sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
+  sidebarWidth: 260,
 
   disablePromptHint: false,
 
-  dontShowMaskSplashScreen: false, // dont show splash screen when create chat
-  hideBuiltinMasks: false, // dont add builtin masks
+  dontShowMaskSplashScreen: false,
+  hideBuiltinMasks: false,
 
   customModels: "",
-  models: DEFAULT_MODELS as any as LLMModel[],
+  models: [{ name: "coze-bot", available: true }],
 
   modelConfig: {
-    model: "gpt-3.5-turbo" as ModelType,
+    model: "coze-bot" as ModelType,
     temperature: 0.5,
     top_p: 1,
     max_tokens: 2000,
@@ -133,6 +133,7 @@ export const useAppConfig = createPersistStore(
         .customModels.split(",")
         .filter((v) => !!v && v.length > 0)
         .map((m) => ({ name: m, available: true }));
+
       return get().models.concat(customModels);
     },
   }),

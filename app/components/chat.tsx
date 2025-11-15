@@ -36,20 +36,20 @@ import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
 import RobotIcon from "../icons/robot.svg";
 
-import QuestionMark from "../icons/question-mark.svg"
+import QuestionMark from "../icons/question-mark.svg";
 
 import {
   ChatMessage,
   SubmitKey,
   useChatStore,
   BOT_HELLO,
-  createMessage,
   useAccessStore,
   Theme,
   useAppConfig,
   DEFAULT_TOPIC,
   ModelType,
 } from "../store";
+import { createMessage } from "../utils/message";
 
 import {
   copyToClipboard,
@@ -101,7 +101,7 @@ import SelectionSort from "../visual/selection-sort";
 import BinarySearch from "../visual/binary-search";
 import { useSyncStore } from "../store/sync";
 import ConnectivityGraph from "../visual/graph-connectivity";
-import {extractJSONContent} from "../visual/extract";
+import { extractJSONContent } from "../visual/extract";
 import ComponentsGraph from "../visual/component-graph";
 import Graph_Cycle from "../visual/graph-cycle";
 import PageRankGraph from "../visual/pagerank-graph";
@@ -453,15 +453,19 @@ export function ChatActions(props: {
         await syncStore.sync();
         callCount++;
         console.log(`*****syncAndHandleResult called ${callCount} times *****`);
-      }, 1000); 
+      }, 1000);
     } catch (e) {
       console.error("[Sync]", e);
     }
   };
 
-  const hints = ['The Blue Nodes: unvisited nodes', 'The Green Nodes: visited nodes', 
-                'The Red Nodes and Edges: current nodes or edges','The Yellow Nodes and Edges: final results of nodes or edges'
-                ,'After you have finished your chatting, please click the "magic wand", second button from the left'];
+  const hints = [
+    "The Blue Nodes: unvisited nodes",
+    "The Green Nodes: visited nodes",
+    "The Red Nodes and Edges: current nodes or edges",
+    "The Yellow Nodes and Edges: final results of nodes or edges",
+    'After you have finished your chatting, please click the "magic wand", second button from the left',
+  ];
 
   return (
     <div className={styles["chat-input-actions"]}>
@@ -527,7 +531,7 @@ export function ChatActions(props: {
         icon={<QuestionMark />}
       />
 
-    {/* hints */}
+      {/* hints */}
       {showModelSelector && (
         <Selector
           items={hints.map((m) => ({
@@ -537,7 +541,6 @@ export function ChatActions(props: {
           onClose={() => setShowModelSelector(false)}
         />
       )}
-      
     </div>
   );
 }
@@ -1065,7 +1068,6 @@ function _Chat() {
           </div>
         </div>
         <div className="window-actions">
-
           <div className="window-action-button">
             <IconButton
               icon={<ExportIcon />}
@@ -1208,7 +1210,7 @@ function _Chat() {
                   )}
                   <div className={styles["chat-message-item"]}>
                     <Markdown
-                      content={extractJSONContent(message.content)}  
+                      content={extractJSONContent(message.content)}
                       loading={
                         (message.preview || message.streaming) &&
                         message.content.length === 0 &&
@@ -1225,33 +1227,100 @@ function _Chat() {
                     />
                     <div>
                       {(() => {
-                        switch (message.animation.type) {
+                        if (
+                          !message.animation ||
+                          typeof message.animation !== "object" ||
+                          !("type" in message.animation)
+                        ) {
+                          return null;
+                        }
+                        const animationData = message.animation as any;
+                        switch (animationData.type) {
                           case "barchart":
-                            return <BarChart {...message.animation} />;
+                            return (
+                              <BarChart
+                                data={animationData.data || []}
+                                newData={animationData.newData || []}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "insertionSort":
-                            return <InsertionSort {...message.animation} />;
+                            return (
+                              <InsertionSort
+                                data={animationData.data || []}
+                                newData={animationData.newData || []}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "selectionSort":
-                            return <SelectionSort {...message.animation} />;
+                            return (
+                              <SelectionSort
+                                data={animationData.data || []}
+                                newData={animationData.newData || []}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "changingAllNumber":
                             return (
                               <BarChart_changingAllNumber
-                                {...message.animation}
+                                data={animationData.data || []}
+                                newData={animationData.newData || []}
+                                messageId={animationData.messageId || ""}
                               />
                             );
                           case "findmax":
-                            return <FindMax {...message.animation} />;
+                            return (
+                              <FindMax
+                                data={animationData.data || []}
+                                maxidx={animationData.maxidx}
+                                compareidx={animationData.compareidx}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "searchnumber":
-                            return <SearchNumber {...message.animation} />;
+                            return (
+                              <SearchNumber
+                                data={animationData.data || []}
+                                number={animationData.number}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "binarysearch":
-                            return <BinarySearch {...message.animation} />; 
+                            return (
+                              <BinarySearch
+                                data={animationData.data || []}
+                                number={animationData.number}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "component":
-                            return <ComponentsGraph {...message.animation} />; 
+                            return (
+                              <ComponentsGraph
+                                json={animationData.json}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "check connectivity":
-                            return <ConnectivityGraph {...message.animation}/>;
+                            return (
+                              <ConnectivityGraph
+                                json={animationData.json}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "check_cycle":
-                            return <Graph_Cycle {...message.animation}/>;
+                            return (
+                              <Graph_Cycle
+                                json={animationData.json}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           case "pagerank":
-                            return <PageRankGraph {...message.animation}/>;
+                            return (
+                              <PageRankGraph
+                                json={animationData.json}
+                                messageId={animationData.messageId || ""}
+                              />
+                            );
                           default:
                             return null;
                         }

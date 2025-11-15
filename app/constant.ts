@@ -66,6 +66,12 @@ export const OpenaiPath = {
   ListModelPath: "v1/models",
 };
 
+export const CozePath = {
+  ChatPath: "v3/chat",
+  BotPath: "v3/bot",
+  ConversationPath: "v3/conversation",
+};
+
 export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang
 export const DEFAULT_SYSTEM_TEMPLATE = `
 You are ChatGPT, a large language model trained by OpenAI.

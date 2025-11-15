@@ -11,33 +11,27 @@ export const getBuildConfig = () => {
   const isApp = !!process.env.BUILD_APP;
   const version = "v" + tauriConfig.package.version;
 
-  const commitInfo = (() => {
-    try {
-      const childProcess = require("child_process");
-      const commitDate: string = childProcess
-        .execSync('git log -1 --format="%at000" --date=unix')
-        .toString()
-        .trim();
-      const commitHash: string = childProcess
-        .execSync('git log --pretty=format:"%H" -n 1')
-        .toString()
-        .trim();
-
-      return { commitDate, commitHash };
-    } catch (e) {
-      // Silently handle git errors in development
-      return {
-        commitDate: "unknown",
-        commitHash: "unknown",
-      };
-    }
-  })();
+  // Default commit info - use environment variables or fallback to unknown
+  // These can be set during build time in CI/CD environment
+  const commitDate =
+    process.env.GIT_COMMIT_DATE ||
+    process.env.NEXT_PUBLIC_GIT_COMMIT_DATE ||
+    "unknown";
+  const commitHash =
+    process.env.GIT_COMMIT_HASH ||
+    process.env.NEXT_PUBLIC_GIT_COMMIT_HASH ||
+    "unknown";
 
   return {
     version,
-    ...commitInfo,
+    commitDate,
+    commitHash,
     buildMode,
     isApp,
+    // Coze configuration from environment variables
+    cozeApiKey: process.env.COZE_API_KEY || "",
+    cozeBotId: process.env.COZE_BOT_ID || "",
+    cozeBaseUrl: process.env.COZE_BASE_URL || "https://api.coze.com",
   };
 };
 

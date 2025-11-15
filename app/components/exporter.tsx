@@ -248,23 +248,14 @@ export function RenderExport(props: {
     if (messages.length !== props.messages.length) {
       return;
     }
-    const emptyprops: Props = {
-      type: "no_animation",
-      data: [],
-      newData: [],
-      messageId: "",
-
-      maxidx: -1,
-      compareidx: -1,
-      number: -1,
-    };
+    const emptyprops = null;
 
     const renderMsgs = messages.map((v, i) => {
       const [role, _] = v.id.split(":");
       return {
         id: i.toString(),
         role: role as any,
-        content: role === "user" ? v.textContent ?? "" : v.innerHTML,
+        content: role === "user" ? (v.textContent ?? "") : v.innerHTML,
         date: "",
         animation: emptyprops,
       };
@@ -526,9 +517,7 @@ export function ImagePreviewer(props: {
 
           <div>
             <div className={styles["main-title"]}>VisualCodeChat</div>
-            <div className={styles["sub-title"]}>
-              placeholder
-            </div>
+            <div className={styles["sub-title"]}>placeholder</div>
             <div className={styles["icons"]}>
               <ExportAvatar avatar={config.avatar} />
               <span className={styles["icon-space"]}>&</span>

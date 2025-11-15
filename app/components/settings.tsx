@@ -518,7 +518,7 @@ function SyncItems() {
           </div>
         </ListItem>
 
-{/* Export数据 */}
+        {/* Export数据 */}
         <ListItem
           title={Locale.Settings.Sync.LocalState}
           subTitle={Locale.Settings.Sync.Overview(stateOverview)}
@@ -822,6 +822,37 @@ export function Settings() {
                     accessStore.updateToken(e.currentTarget.value);
                   }}
                 />
+              </ListItem>
+              {/* Coze API 配置 */}
+              <ListItem title="Coze API Key" subTitle="输入你的Coze API密钥">
+                <PasswordInput
+                  value={accessStore.cozeApiKey}
+                  type="text"
+                  placeholder="输入Coze API密钥"
+                  onChange={(e) => {
+                    accessStore.updateCozeApiKey(e.currentTarget.value);
+                  }}
+                />
+              </ListItem>
+              <ListItem title="Coze API URL" subTitle="输入你的Coze API地址">
+                <input
+                  type="text"
+                  value={accessStore.cozeUrl}
+                  placeholder="https://api.coze.com/"
+                  onChange={(e) =>
+                    accessStore.updateCozeUrl(e.currentTarget.value)
+                  }
+                ></input>
+              </ListItem>
+              <ListItem title="Coze Bot ID" subTitle="输入你的Coze机器人ID">
+                <input
+                  type="text"
+                  value={accessStore.cozeBotId}
+                  placeholder="输入Coze Bot ID"
+                  onChange={(e) =>
+                    accessStore.updateCozeBotId(e.currentTarget.value)
+                  }
+                ></input>
               </ListItem>
             </>
           ) : null}

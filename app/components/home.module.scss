@@ -1,7 +1,7 @@
 @import "../styles/animation.scss";
 
 // 浅蓝主题变量
-:root {
+.home-container {
   --brand: #93C5FD; /* 浅天蓝主色 */
   --accent: #BFDBFE; /* 次浅蓝 */
   --success: #4ADE80;
@@ -85,6 +85,32 @@
     transform: translateY(-50%);
     color: var(--brand);
     pointer-events: none;
+  }
+}
+
+// 加载动画样式
+.loading-dots {
+  display: inline-block;
+  margin-left: 4px;
+  
+  span {
+    animation: loading-dot 1.4s infinite ease-in-out both;
+    display: inline-block;
+    margin: 0 1px;
+    
+    &:nth-child(1) { animation-delay: -0.32s; }
+    &:nth-child(2) { animation-delay: -0.16s; }
+  }
+}
+
+@keyframes loading-dot {
+  0%, 80%, 100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -219,6 +245,24 @@
   flex: 1;
   overflow-y: auto;
   margin-bottom: 0.75rem;
+  max-height: calc(100vh - 300px); /* 限制最大高度，防止无限延伸 */
+  min-height: 200px; /* 最小高度保证可用性 */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #e2e8f0 transparent; /* Firefox */
+}
+
+/* Webkit浏览器滚动条样式 */
+.home-chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.home-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.home-chat-messages::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  border-radius: 3px;
 }
 
 .home-message {
@@ -289,10 +333,89 @@
   padding: 0.25rem 0;
 }
 
+/* 聊天输入区域 */
 .home-chat-input {
   display: flex;
   gap: 0.5rem;
   padding-top: 0.75rem;
+  flex-wrap: wrap; /* 允许换行 */
+  align-items: center; /* 垂直居中 */
+}
+
+/* 输入框样式 */
+.home-input {
+  flex: 1;
+  min-width: 120px; /* 最小宽度 */
+  padding: 0.75rem 1rem;
+  height: 2.75rem;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background: white;
+  color: #334155; /* slate-700 */
+  transition: all 0.25s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.3);
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* 按钮基础样式 */
+.home-button {
+  padding: 0.75rem 1.5rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  
+  &:disabled {
+    background: #cbd5e1; /* slate-300 */
+    color: #64748b; /* slate-500 */
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+/* 主要按钮 */
+.primary {
+  background: var(--brand);
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background: var(--accent);
+  }
+}
+
+/* 危险按钮 */
+.danger {
+  background: var(--danger);
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background: #f87171; /* red-400 */
+  }
 }
 
 .home-input {
@@ -405,5 +528,36 @@
   
   .home-animation-container {
     min-height: 450px;
+  }
+  
+  /* 小屏下的聊天输入区域优化 */
+  .home-chat-input {
+    flex-direction: column; /* 垂直排列 */
+    align-items: stretch; /* 拉伸填满宽度 */
+    gap: 0.75rem; /* 增加间距 */
+  }
+  
+  .home-input {
+    width: 100%; /* 占满宽度 */
+    min-width: auto; /* 移除最小宽度限制 */
+  }
+  
+  .home-button {
+    width: 100%; /* 按钮占满宽度 */
+    justify-content: center; /* 内容居中 */
+  }
+  
+  /* 按钮组在小屏下的特殊处理 */
+  .home-chat-input .home-button {
+    flex-shrink: 0; /* 防止按钮被压缩 */
+  }
+  
+  /* 停止按钮和状态文字的布局优化 */
+  .home-chat-input > span {
+    order: 3; /* 状态文字放在最后 */
+    width: 100%; /* 占满宽度 */
+    text-align: center; /* 文字居中 */
+    margin: 0; /* 移除默认边距 */
+    padding-top: 0.5rem; /* 增加顶部间距 */
   }
 }

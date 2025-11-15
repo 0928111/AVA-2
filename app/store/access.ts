@@ -18,6 +18,9 @@ const DEFAULT_ACCESS_STATE = {
   disableGPT4: false,
 
   openaiUrl: DEFAULT_OPENAI_URL,
+  cozeApiKey: "",
+  cozeUrl: "",
+  cozeBotId: "",
 };
 
 export const useAccessStore = createPersistStore(
@@ -30,13 +33,85 @@ export const useAccessStore = createPersistStore(
       return get().needCode;
     },
     updateCode(code: string) {
-      set(() => ({ accessCode: code?.trim() }));
+      // ASCII字符验证函数
+      const isAsciiOnly = (str: string) => {
+        if (!str || typeof str !== "string") return false;
+        for (let i = 0; i < str.length; i++) {
+          if (str.charCodeAt(i) > 127) {
+            console.warn(
+              `[AccessStore] Non-ASCII character detected in access code at position ${i}: "${str[i]}", rejecting code`,
+            );
+            return false;
+          }
+        }
+        return true;
+      };
+
+      const trimmedCode = code?.trim() || "";
+      if (trimmedCode && !isAsciiOnly(trimmedCode)) {
+        console.error(
+          "[AccessStore] Access code contains non-ASCII characters, not saving",
+        );
+        return;
+      }
+      set(() => ({ accessCode: trimmedCode }));
     },
     updateToken(token: string) {
-      set(() => ({ token: token?.trim() }));
+      // ASCII字符验证函数
+      const isAsciiOnly = (str: string) => {
+        if (!str || typeof str !== "string") return false;
+        for (let i = 0; i < str.length; i++) {
+          if (str.charCodeAt(i) > 127) {
+            console.warn(
+              `[AccessStore] Non-ASCII character detected in token at position ${i}: "${str[i]}", rejecting token`,
+            );
+            return false;
+          }
+        }
+        return true;
+      };
+
+      const trimmedToken = token?.trim() || "";
+      if (trimmedToken && !isAsciiOnly(trimmedToken)) {
+        console.error(
+          "[AccessStore] Token contains non-ASCII characters, not saving",
+        );
+        return;
+      }
+      set(() => ({ token: trimmedToken }));
     },
     updateOpenAiUrl(url: string) {
       set(() => ({ openaiUrl: url?.trim() }));
+    },
+    updateCozeApiKey(key: string) {
+      // ASCII字符验证函数
+      const isAsciiOnly = (str: string) => {
+        if (!str || typeof str !== "string") return false;
+        for (let i = 0; i < str.length; i++) {
+          if (str.charCodeAt(i) > 127) {
+            console.warn(
+              `[AccessStore] Non-ASCII character detected in Coze API key at position ${i}: "${str[i]}", rejecting key`,
+            );
+            return false;
+          }
+        }
+        return true;
+      };
+
+      const trimmedKey = key?.trim() || "";
+      if (trimmedKey && !isAsciiOnly(trimmedKey)) {
+        console.error(
+          "[AccessStore] Coze API key contains non-ASCII characters, not saving",
+        );
+        return;
+      }
+      set(() => ({ cozeApiKey: trimmedKey }));
+    },
+    updateCozeUrl(url: string) {
+      set(() => ({ cozeUrl: url?.trim() }));
+    },
+    updateCozeBotId(botId: string) {
+      set(() => ({ cozeBotId: botId?.trim() }));
     },
     isAuthorized() {
       this.fetch();

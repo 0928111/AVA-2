@@ -7,10 +7,16 @@ interface BarChartProps {
   messageId: string;
 }
 
-const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
+const InsertionSort: React.FC<Props> = ({
+  data,
+  compareidx,
+  newData,
+  messageId,
+}: Props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
+    if (!data || !newData) return;
     const width = 640;
     const height = 400;
     const marginTop = 20;
@@ -50,9 +56,10 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
 
     bars
       .append("rect")
-      .attr("x", (_, idx) => x(idx.toString()) as number)
-      .attr("y", (d) => y(d) as number)
-      .attr("height", (d) => y(0) - (y(d) as number))
+      .attr("x", (_: number, idx: number) => x(idx.toString()) as number)
+      .attr("y", (d: number) => y(d) as number)
+      .attr("width", x.bandwidth())
+      .attr("height", (d: number) => y(0) - (y(d) as number))
       .attr("width", x.bandwidth() as number)
       .attr("fill", "steelblue");
 
@@ -62,7 +69,7 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
       .attr("transform", `translate(0,${height - marginBottom})`)
       .call(xAxis)
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     // gy
     svgElement
@@ -75,7 +82,7 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
           .tickFormat(d3.format(".0f")),
       )
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     function findArrayDifference(
       arr1: number[],
@@ -112,23 +119,25 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
       }
       return sortedIndexes;
     }
-    function findHighestDifferentIndex(arr1: number[], arr2: number[]): number[] {
+    function findHighestDifferentIndex(
+      arr1: number[],
+      arr2: number[],
+    ): number[] {
       let highestDiffIndex = -1;
 
       for (let i = 0; i < arr1.length; i++) {
-          if (arr1[i] !== arr2[i]) {
-              highestDiffIndex = i;
-          }
+        if (arr1[i] !== arr2[i]) {
+          highestDiffIndex = i;
+        }
       }
-  
+
       return Array.from({ length: highestDiffIndex }, (_, index) => index);
-  }
-    function staticChart(){
-      
+    }
+    function staticChart() {
       const sortedIndexes = [0];
       let selector = "A" + messageId;
       const lastsvg = d3.select(`#${selector}`);
-      
+
       sortedIndexes.forEach((index) => {
         const bar = lastsvg.select(`.bar:nth-child(${index + 1})`);
         bar.select("rect").attr("fill", "green");
@@ -136,8 +145,10 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
     }
 
     function chart() {
-      const diffIndices = findArrayDifference(data, newData);
-      const sortedIndexes = findHighestDifferentIndex(data, newData);
+      const diffIndices =
+        data && newData ? findArrayDifference(data, newData) : null;
+      const sortedIndexes =
+        data && newData ? findHighestDifferentIndex(data, newData) : [];
       let selector = "A" + messageId;
       const lastsvg = d3.select(`#${selector}`);
 
@@ -174,8 +185,8 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
               })
               .on("end", () => {
                 mov
-                .transition()
-                .tween("color", () => colorTween("orange", "green"));
+                  .transition()
+                  .tween("color", () => colorTween("orange", "green"));
                 chart();
               });
           } else {
@@ -193,15 +204,21 @@ const InsertionSort: React.FC<Props> = ({ data, newData, messageId }) => {
       }
     }
     if (
+      data &&
+      newData &&
       !data.every((element, index) => element === newData[index]) &&
       newData.length >= 5 &&
       !isSorted(data)
     ) {
       chart();
-    }else{
+    } else {
       staticChart();
     }
   }, [data, newData, messageId]);
+
+  if (!data || !newData) {
+    return null;
+  }
 
   return (
     <div style={{ width: "200px", height: "150px" }}>

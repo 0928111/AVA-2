@@ -6,10 +6,11 @@ import { Props } from "../components/visual-props";
 
 // data, number, messageId
 
-const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
+const SearchNumber: React.FC<Props> = ({ data, number, messageId }: Props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
+    if (!data) return;
     function sleep(ms: number) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -22,7 +23,7 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
     const marginLeft = 40;
     const x = d3
       .scaleBand()
-      .domain(data.map((_, idx) => idx.toString()))
+      .domain(data ? data.map((_, idx) => idx.toString()) : [])
       .range([marginLeft, width - marginRight])
       .padding(0.15);
 
@@ -30,7 +31,7 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(data) as number])
+      .domain([0, data ? (d3.max(data) as number) : 0])
       .nice()
       .range([height - marginBottom, marginTop]);
 
@@ -45,7 +46,7 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
 
     const bars = svgElement
       .selectAll(".bar")
-      .data(data)
+      .data(data || [])
       .enter()
       .append("g")
       .attr("class", "bar")
@@ -53,9 +54,10 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
 
     bars
       .append("rect")
-      .attr("x", (_, idx) => x(idx.toString()) as number)
-      .attr("y", (d) => y(d) as number)
-      .attr("height", (d) => y(0) - (y(d) as number))
+      .attr("x", (_: number, idx: number) => x(idx.toString()) as number)
+      .attr("y", (d: number) => y(d) as number)
+      .attr("width", x.bandwidth())
+      .attr("height", (d: number) => y(0) - (y(d) as number))
       .attr("width", x.bandwidth() as number)
       .attr("fill", "steelblue");
 
@@ -65,7 +67,7 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
       .attr("transform", `translate(0,${height - marginBottom})`)
       .call(xAxis)
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     // gy
     svgElement
@@ -74,14 +76,14 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
       .call(
         d3
           .axisLeft(y)
-          .ticks(d3.max(data) as number)
+          .ticks(data ? (d3.max(data) as number) : 0)
           .tickFormat(d3.format(".0f")),
       )
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     async function chart() {
-      const index = getIndex(data, number);
+      const index = data && number !== undefined ? getIndex(data, number) : -1;
 
       if (index !== -1) {
         await sleep(1000);
@@ -128,7 +130,7 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
         }
       } else {
         const lastsvg2 = d3.select(`#${"A" + messageId}`);
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; data && i < data.length; i++) {
           let bar2 = lastsvg2.select(`.bar:nth-child(${i + 1})`);
 
           const colorTween2 = (startColor: string, endColor: string) => {
@@ -137,7 +139,7 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
               bar2.select("rect").attr("fill", interpolateColor(t));
             };
           };
-          if (i !== data.length - 1) {
+          if (data && i !== data.length - 1) {
             bar2
               .transition()
               .duration(300)
@@ -169,13 +171,20 @@ const SearchNumber: React.FC<Props> = ({ data, number, messageId }) => {
     chart();
   }, [data, number, messageId]);
 
-  function getIndex(arr1: number[], num: number): number {
+  function getIndex(arr1: number[] | undefined, num: number): number {
+    if (!arr1) {
+      return -1;
+    }
     for (let i = 0; i < arr1.length; i++) {
       if (arr1[i] === num) {
         return i;
       }
     }
     return -1;
+  }
+
+  if (!data) {
+    return null;
   }
 
   return (

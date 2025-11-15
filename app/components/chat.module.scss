@@ -244,12 +244,29 @@
 
 .chat-body {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
   overflow-x: hidden;
   padding: 20px;
   padding-bottom: 40px;
   position: relative;
   overscroll-behavior: none;
+  max-height: calc(100vh - 200px); /* 限制最大高度，留出空间给输入框和标题栏 */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--border-in-light) transparent; /* Firefox */
+}
+
+/* Webkit浏览器滚动条样式 */
+.chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-body::-webkit-scrollbar-thumb {
+  background-color: var(--border-in-light);
+  border-radius: 3px;
 }
 
 .chat-body-main-title {

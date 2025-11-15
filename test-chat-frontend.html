@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试聊天功能</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .user { background-color: #e3f2fd; text-align: right; }
+        .assistant { background-color: #f5f5f5; }
+        input { width: 70%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        #status { margin: 10px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>测试聊天功能</h1>
+        <div id="status">状态: 准备就绪</div>
+        <div id="messages"></div>
+        <input type="text" id="userInput" placeholder="输入消息..." />
+        <button onclick="sendMessage()">发送</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 显示用户消息
+            addMessage(message, 'user');
+            input.value = '';
+
+            // 更新状态
+            document.getElementById('status').textContent = '状态: 发送请求中...';
+
+            try {
+                // 调用API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            {
+                                role: 'user',
+                                content: message
+                            }
+                        ],
+                        model: 'coze-bot',
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('API响应:', data);
+
+                // 提取助手回复
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const assistantMessage = data.choices[0].message.content;
+                    addMessage(assistantMessage, 'assistant');
+                    document.getElementById('status').textContent = '状态: 回复成功';
+                } else {
+                    throw new Error('响应格式错误');
+                }
+
+            } catch (error) {
+                console.error('错误:', error);
+                addMessage(`错误: ${error.message}`, 'assistant');
+                document.getElementById('status').textContent = '状态: 发生错误';
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // 回车发送消息
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

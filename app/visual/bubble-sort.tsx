@@ -9,10 +9,11 @@ interface BarChartProps {
   messageId: string;
 }
 
-const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
+const BarChart: React.FC<Props> = ({ data, newData, messageId }: Props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
+    if (!data || !newData) return;
     const width = 640;
     const height = 400;
     const marginTop = 20;
@@ -52,9 +53,10 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
 
     bars
       .append("rect")
-      .attr("x", (_, idx) => x(idx.toString()) as number)
-      .attr("y", (d) => y(d) as number)
-      .attr("height", (d) => y(0) - (y(d) as number))
+      .attr("x", (_: number, idx: number) => x(idx.toString()) as number)
+      .attr("y", (d: number) => y(d) as number)
+      .attr("width", x.bandwidth())
+      .attr("height", (d: number) => y(0) - (y(d) as number))
       .attr("width", x.bandwidth() as number)
       .attr("fill", "steelblue");
 
@@ -64,7 +66,7 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
       .attr("transform", `translate(0,${height - marginBottom})`)
       .call(xAxis)
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     // gy
     svgElement
@@ -77,7 +79,7 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
           .tickFormat(d3.format(".0f")),
       )
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     function findArrayDifference(
       arr1: number[],
@@ -98,7 +100,7 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
         if (a > b) return 1;
         return 0;
       });
-      for (let i = arr.length - 1; i >= 0; i--) { 
+      for (let i = arr.length - 1; i >= 0; i--) {
         if (arr[i] !== sortedArr[i]) {
           break;
         }
@@ -129,7 +131,7 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
       return { changedIndexes, finalPositions };
     }
 
-        // check if the array is already sorted 
+    // check if the array is already sorted
     function isSorted(arr: number[]) {
       for (let i = 0; i < arr.length - 1; i++) {
         if (arr[i] > arr[i + 1]) {
@@ -139,8 +141,8 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
       return true;
     }
 
-    function staticChart(){
-      const sortedIndexes = findSortedIndexes(data);
+    function staticChart() {
+      const sortedIndexes = data ? findSortedIndexes(data) : [];
       let selector = "A" + messageId;
       const lastsvg = d3.select(`#${selector}`);
       sortedIndexes.forEach((index) => {
@@ -150,8 +152,9 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
     }
 
     function chart() {
-      const diffIndices = findArrayDifference(data, newData);
-      const sortedIndexes = findSortedIndexes(data);
+      const diffIndices =
+        data && newData ? findArrayDifference(data, newData) : null;
+      const sortedIndexes = data ? findSortedIndexes(data) : [];
       let selector = "A" + messageId;
       const lastsvg = d3.select(`#${selector}`);
       sortedIndexes.forEach((index) => {
@@ -161,7 +164,9 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
 
       if (diffIndices !== null) {
         const { changedIndexes, finalPositions } =
-          findIndexChangesAndFinalPosition(data, newData);
+          data && newData
+            ? findIndexChangesAndFinalPosition(data, newData)
+            : { changedIndexes: [], finalPositions: [] };
         for (const [i, diffIndex] of diffIndices.entries()) {
           const mov = lastsvg.select(`.bar:nth-child(${diffIndex[0] + 1})`);
 
@@ -190,7 +195,7 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
             .on("end", () => {
               if (i === diffIndices.length - 1) {
                 chart();
-              } else if(i === diffIndices.length - 2){
+              } else if (i === diffIndices.length - 2) {
                 if (finalPositions[diffIndex[1]] === true) {
                   mov
                     .transition()
@@ -202,15 +207,21 @@ const BarChart: React.FC<Props> = ({ data, newData, messageId }) => {
       }
     }
     if (
+      data &&
+      newData &&
       !data.every((element, index) => element === newData[index]) &&
       newData.length >= 5 &&
       !isSorted(data)
     ) {
       chart();
-    }else{
+    } else {
       staticChart();
     }
   }, [data, newData, messageId]);
+
+  if (!data || !newData) {
+    return null;
+  }
 
   return (
     <div style={{ width: "200px", height: "150px" }}>

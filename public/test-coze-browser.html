@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coze API测试 - 浏览器环境</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .config-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .ascii-test {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Coze API 浏览器环境测试</h1>
+        <p>此页面用于测试浏览器环境下的Coze API连接问题</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 API配置</h2>
+        <div class="config-section">
+            <div class="config-item">
+                <label for="apiKey">Coze API密钥:</label>
+                <textarea id="apiKey" placeholder="输入您的Coze API密钥">sat_yMrCtDDJ3hu75OVifEOLi1UXBtd6w75P5m6oTczqgo8sRfdT4McCotEnaZ9I9swr</textarea>
+            </div>
+            <div class="config-item">
+                <label for="botId">Bot ID:</label>
+                <input type="text" id="botId" placeholder="输入Bot ID" value="7557346656962953270">
+            </div>
+            <div class="config-item">
+                <label for="baseUrl">Base URL:</label>
+                <input type="text" id="baseUrl" placeholder="API基础URL" value="https://api.coze.cn">
+            </div>
+            <div class="config-item">
+                <label for="userQuery">测试消息:</label>
+                <textarea id="userQuery" placeholder="输入测试消息">Hello, can you explain PageRank algorithm?</textarea>
+            </div>
+        </div>
+        
+        <div class="ascii-test">
+            <button onclick="testAscii()">🔤 检测ASCII字符</button>
+            <span id="asciiResult"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🧪 连接测试</h2>
+        
+        <div class="test-section">
+            <h3>1. DNS和网络连接测试</h3>
+            <button onclick="testDNS()">🌐 测试DNS解析</button>
+            <button onclick="testCORS()">🔒 测试CORS</button>
+            <div id="networkResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. API密钥验证</h3>
+            <button onclick="testAPIKey()">🔑 验证API密钥</button>
+            <div id="authResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 完整聊天测试</h3>
+            <button onclick="testChat()">💬 测试聊天功能</button>
+            <div id="chatResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 错误分析</h3>
+            <button onclick="analyzeErrors()">🔍 分析错误</button>
+            <div id="errorAnalysis" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 浏览器环境信息</h2>
+        <div id="browserInfo" class="result"></div>
+    </div>
+
+    <script>
+        // 工具函数
+        function isAsciiOnly(str) {
+            for (let i = 0; i < str.length; i++) {
+                if (str.charCodeAt(i) > 127) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = content;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        // ASCII字符检测
+        function testAscii() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const result = isAsciiOnly(apiKey);
+            const element = document.getElementById('asciiResult');
+            
+            if (result) {
+                element.textContent = '✅ API密钥只包含ASCII字符';
+                element.className = 'success';
+            } else {
+                element.textContent = '❌ API密钥包含非ASCII字符';
+                element.className = 'error';
+            }
+        }
+
+        // DNS和网络连接测试
+        async function testDNS() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            showResult('networkResult', '正在测试DNS解析...', 'info');
+            
+            try {
+                // 测试基本连接
+                const response = await fetch(`${baseUrl}/v3/bot/get_online_bots`, {
+                    method: 'GET',
+                    mode: 'no-cors', // 先测试无CORS模式
+                    cache: 'no-cache'
+                });
+                
+                logResult('networkResult', 'DNS解析: ✅ 成功', 'success');
+                logResult('networkResult', 'HTTP连接: ✅ 成功', 'success');
+                
+            } catch (error) {
+                logResult('networkResult', `DNS/连接测试: ❌ 失败 - ${error.message}`, 'error');
+            }
+        }
+
+        // CORS测试
+        async function testCORS() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            showResult('networkResult', '正在测试CORS...', 'info');
+            
+            try {
+                // 测试带CORS的请求
+                const response = await fetch(`${baseUrl}/v3/bot/get_online_bots`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    cache: 'no-cache'
+                });
+                
+                logResult('networkResult', `CORS状态: ${response.ok ? '✅ 成功' : '❌ 失败'}`, response.ok ? 'success' : 'error');
+                logResult('networkResult', `响应状态: ${response.status}`, 'info');
+                
+                // 检查响应头
+                const headers = Object.fromEntries(response.headers.entries());
+                logResult('networkResult', `响应头: ${JSON.stringify(headers, null, 2)}`, 'info');
+                
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    logResult('networkResult', `CORS错误: ❌ ${error.message}`, 'error');
+                    logResult('networkResult', '建议: 检查服务器CORS配置', 'warning');
+                } else {
+                    logResult('networkResult', `CORS测试: ❌ 失败 - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // API密钥验证
+        async function testAPIKey() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            showResult('authResult', '正在验证API密钥...', 'info');
+            
+            if (!isAsciiOnly(apiKey)) {
+                showResult('authResult', '❌ API密钥包含非ASCII字符，请先修复', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${baseUrl}/v3/bot/get_online_bots`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    cache: 'no-cache'
+                });
+                
+                const data = await response.text();
+                
+                if (response.ok) {
+                    logResult('authResult', '✅ API密钥验证成功', 'success');
+                    logResult('authResult', `响应数据: ${data.substring(0, 200)}...`, 'info');
+                } else {
+                    logResult('authResult', `❌ API密钥验证失败 - HTTP ${response.status}`, 'error');
+                    logResult('authResult', `响应数据: ${data}`, 'error');
+                }
+                
+            } catch (error) {
+                logResult('authResult', `❌ API密钥验证失败 - ${error.message}`, 'error');
+            }
+        }
+
+        // 完整聊天测试
+        async function testChat() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const botId = document.getElementById('botId').value.trim();
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const userQuery = document.getElementById('userQuery').value.trim();
+            
+            showResult('chatResult', '正在测试聊天功能...', 'info');
+            
+            if (!isAsciiOnly(apiKey)) {
+                showResult('chatResult', '❌ API密钥包含非ASCII字符，请先修复', 'error');
+                return;
+            }
+            
+            const payload = {
+                bot_id: botId,
+                user: 'user',
+                stream: false,
+                query: userQuery,
+                custom_variables: {
+                    graph_data: JSON.stringify({
+                        nodes: [
+                            {id: "A", rank: 0.33, label: "A"},
+                            {id: "B", rank: 0.33, label: "B"},
+                            {id: "C", rank: 0.34, label: "C"}
+                        ],
+                        links: [
+                            {source: "A", target: "B", weight: 1},
+                            {source: "B", target: "C", weight: 1},
+                            {source: "C", target: "A", weight: 1}
+                        ],
+                        algo: "pagerank",
+                        currentIteration: 0,
+                        maxIterations: 10,
+                        dampingFactor: 0.85,
+                        threshold: 0.0001
+                    }),
+                    algo: "pagerank",
+                    language: "zh",
+                    detail_level: "detailed"
+                },
+                additional_messages: [{
+                    role: 'user',
+                    content_type: 'text',
+                    content: userQuery
+                }]
+            };
+            
+            try {
+                logResult('chatResult', '发送请求到Coze API...', 'info');
+                logResult('chatResult', `请求负载: ${JSON.stringify(payload, null, 2)}`, 'info');
+                
+                const response = await fetch(`${baseUrl}/v3/chat`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                    cache: 'no-cache'
+                });
+                
+                const data = await response.text();
+                logResult('chatResult', `响应状态: ${response.status}`, response.ok ? 'success' : 'error');
+                logResult('chatResult', `响应数据: ${data}`, 'info');
+                
+                if (response.ok) {
+                    try {
+                        const jsonData = JSON.parse(data);
+                        if (jsonData.code === 0) {
+                            logResult('chatResult', '✅ 聊天测试成功！', 'success');
+                        } else {
+                            logResult('chatResult', `❌ Coze API错误: ${jsonData.msg} (代码: ${jsonData.code})`, 'error');
+                        }
+                    } catch (e) {
+                        logResult('chatResult', '响应不是有效的JSON格式', 'error');
+                    }
+                }
+                
+            } catch (error) {
+                logResult('chatResult', `❌ 聊天测试失败: ${error.message}`, 'error');
+                logResult('chatResult', `错误类型: ${error.name}`, 'error');
+            }
+        }
+
+        // 错误分析
+        function analyzeErrors() {
+            showResult('errorAnalysis', '正在分析可能的错误原因...', 'info');
+            
+            const analysis = `🔍 错误分析结果:
+
+1. **网络连接问题**:
+   - DNS解析失败
+   - 网络超时
+   - 防火墙阻止
+
+2. **CORS跨域问题**:
+   - 服务器未配置CORS头
+   - 浏览器安全策略阻止
+   - 需要代理服务器
+
+3. **API密钥问题**:
+   - 密钥格式错误
+   - 密钥权限不足
+   - 密钥已过期
+
+4. **请求格式问题**:
+   - JSON格式错误
+   - 缺少必要字段
+   - 字段类型错误
+
+5. **服务器响应问题**:
+   - 500内部服务器错误
+   - 4000业务错误代码
+   - 超时响应
+
+**建议解决方案**:
+1. 检查网络连接和DNS
+2. 验证API密钥有效性
+3. 检查请求格式和参数
+4. 查看服务器CORS配置
+5. 使用服务器代理避免CORS问题
+`;
+            
+            showResult('errorAnalysis', analysis, 'warning');
+        }
+
+        // 显示浏览器环境信息
+        function showBrowserInfo() {
+            const info = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine,
+                hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+                connection: navigator.connection ? {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : 'not supported',
+                location: {
+                    protocol: window.location.protocol,
+                    hostname: window.location.hostname,
+                    port: window.location.port,
+                    pathname: window.location.pathname
+                },
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    colorDepth: screen.colorDepth
+                }
+            };
+            
+            document.getElementById('browserInfo').textContent = JSON.stringify(info, null, 2);
+        }
+
+        // 页面加载完成后显示浏览器信息
+        window.addEventListener('load', showBrowserInfo);
+    </script>
+</body>
+</html>

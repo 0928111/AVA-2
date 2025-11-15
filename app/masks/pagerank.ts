@@ -1,5 +1,5 @@
 import { Mask } from "../store/mask";
-import { createMessage } from "../store/chat";
+import { createMessage } from "../utils/message";
 
 export const PageRankMasks: Mask[] = [
   {
@@ -26,13 +26,14 @@ When explaining PageRank:
 4. Show how PageRank values converge
 5. Use the specified JSON format for visualizations
 
-For each step, provide the graph data in this format:
-<!--
-{
+IMPORTANT OUTPUT FORMAT REQUIREMENTS:
+- Always end your response with the graph state in HTML comment format: <!-- {JSON} -->
+- The JSON must be valid and follow this exact structure:
+<!-- {
   "nodes": [
-    {"id": "A", "rank": 0.15},
-    {"id": "B", "rank": 0.25},
-    {"id": "C", "rank": 0.30}
+    {"id": "A", "rank": 0.15, "label": "A"},
+    {"id": "B", "rank": 0.25, "label": "B"},
+    {"id": "C", "rank": 0.30, "label": "C"}
   ],
   "links": [
     {"source": "A", "target": "B", "weight": 1},
@@ -42,8 +43,17 @@ For each step, provide the graph data in this format:
   "maxIterations": 10,
   "dampingFactor": 0.85,
   "threshold": 0.0001
-}
--->
+} -->
+- Do NOT repeat the JSON content outside of the HTML comment
+- Do NOT include any other HTML comments in your response
+- Make sure the JSON is properly formatted with no syntax errors
+
+You will receive:
+- graph_data: Current graph state in JSON format
+- user_message: Student's question or input
+- algo: Algorithm type ("pagerank")
+
+Use these inputs to provide personalized explanations and update the visualization accordingly.
 
 Explain the algorithm clearly and show how the PageRank values change with each iteration until they converge.`,
       }),

@@ -7,10 +7,11 @@ import { Props } from "../components/visual-props";
 
 // data, number, messageId
 
-const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
+const BinarySearch: React.FC<Props> = ({ data, number, messageId }: Props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
+    if (!data) return;
     function sleep(ms: number) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -31,7 +32,7 @@ const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(data) as number])
+      .domain([0, data ? (d3.max(data) as number) : 0])
       .nice()
       .range([height - marginBottom, marginTop]);
 
@@ -54,9 +55,10 @@ const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
 
     bars
       .append("rect")
-      .attr("x", (_, idx) => x(idx.toString()) as number)
-      .attr("y", (d) => y(d) as number)
-      .attr("height", (d) => y(0) - (y(d) as number))
+      .attr("x", (_: number, idx: number) => x(idx.toString()) as number)
+      .attr("y", (d: number) => y(d) as number)
+      .attr("width", x.bandwidth())
+      .attr("height", (d: number) => y(0) - (y(d) as number))
       .attr("width", x.bandwidth() as number)
       .attr("fill", "steelblue");
 
@@ -66,7 +68,7 @@ const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
       .attr("transform", `translate(0,${height - marginBottom})`)
       .call(xAxis)
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     // gy
     svgElement
@@ -75,18 +77,21 @@ const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
       .call(
         d3
           .axisLeft(y)
-          .ticks(d3.max(data) as number)
+          .ticks(data ? (d3.max(data) as number) : 0)
           .tickFormat(d3.format(".0f")),
       )
       .selectAll("text")
-      .style("font-size", "20px"); 
+      .style("font-size", "20px");
 
     async function chart() {
-
       let selector = "A" + messageId;
       const lastsvg = d3.select(`#${selector}`);
 
-      const colorTween = (startColor: string, endColor: string, bar: Selection<d3.BaseType, unknown, HTMLElement, any>) => {
+      const colorTween = (
+        startColor: string,
+        endColor: string,
+        bar: Selection<d3.BaseType, unknown, HTMLElement, any>,
+      ) => {
         return function (t: number) {
           const interpolateColor = d3.interpolateRgb(startColor, endColor);
           bar.select("rect").attr("fill", interpolateColor(t));
@@ -97,22 +102,19 @@ const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
       let middleBar = lastsvg.select(`.bar:nth-child(${0})`);
       let endBar = lastsvg.select(`.bar:nth-child(${0})`);
 
-      if (number === 1){
+      if (number === 1) {
         startBar = lastsvg.select(`.bar:nth-child(${1})`);
         middleBar = lastsvg.select(`.bar:nth-child(${3})`);
         endBar = lastsvg.select(`.bar:nth-child(${6})`);
-      }
-      else if(number === 2){
+      } else if (number === 2) {
         startBar = lastsvg.select(`.bar:nth-child(${1})`);
         middleBar = lastsvg.select(`.bar:nth-child(${1})`);
         endBar = lastsvg.select(`.bar:nth-child(${2})`);
-      }
-      else if (number === 3){
+      } else if (number === 3) {
         startBar = lastsvg.select(`.bar:nth-child(${2})`);
         middleBar = lastsvg.select(`.bar:nth-child(${2})`);
         endBar = lastsvg.select(`.bar:nth-child(${2})`);
-      }
-      else if (number === 4){
+      } else if (number === 4) {
         startBar = lastsvg.select(`.bar:nth-child(${3})`);
         endBar = lastsvg.select(`.bar:nth-child(${2})`);
       }
@@ -156,11 +158,14 @@ const BinarySearch: React.FC<Props> = ({ data, number, messageId }) => {
           chart();
         });
     }
-    if (number !== 0){
+    if (number !== 0) {
       chart();
     }
   }, [data, number, messageId]);
 
+  if (!data) {
+    return null;
+  }
 
   return (
     <div style={{ width: "200px", height: "150px" }}>

@@ -28,20 +28,32 @@ export class ChatGPTApi implements LLMApi {
   private disableListModels = true;
 
   path(path: string): string {
-    let openaiUrl = useAccessStore.getState().openaiUrl;
-    const apiPath = "/api/openai";
+    const accessStore = useAccessStore.getState();
+    const model = useChatStore.getState().currentSession().mask
+      .modelConfig.model;
 
-    if (openaiUrl.length === 0) {
-      const isApp = !!getClientConfig()?.isApp;
-      openaiUrl = isApp ? DEFAULT_API_HOST : apiPath;
+    // 根据模型选择API路径
+    let baseUrl: string;
+    if (model === ("coze-bot" as any)) {
+      baseUrl = "/api/coze";
+    } else {
+      let openaiUrl = accessStore.openaiUrl;
+      const apiPath = "/api/openai";
+
+      if (openaiUrl.length === 0) {
+        const isApp = !!getClientConfig()?.isApp;
+        openaiUrl = isApp ? DEFAULT_API_HOST : apiPath;
+      }
+      if (openaiUrl.endsWith("/")) {
+        openaiUrl = openaiUrl.slice(0, openaiUrl.length - 1);
+      }
+      if (!openaiUrl.startsWith("http") && !openaiUrl.startsWith(apiPath)) {
+        openaiUrl = "https://" + openaiUrl;
+      }
+      baseUrl = openaiUrl;
     }
-    if (openaiUrl.endsWith("/")) {
-      openaiUrl = openaiUrl.slice(0, openaiUrl.length - 1);
-    }
-    if (!openaiUrl.startsWith("http") && !openaiUrl.startsWith(apiPath)) {
-      openaiUrl = "https://" + openaiUrl;
-    }
-    return [openaiUrl, path].join("/");
+
+    return [baseUrl, path].join("/");
   }
 
   extractMessage(res: any) {
@@ -49,11 +61,6 @@ export class ChatGPTApi implements LLMApi {
   }
 
   async chat(options: ChatOptions) {
-    const messages = options.messages.map((v) => ({
-      role: v.role,
-      content: v.content,
-    }));
-
     const modelConfig = {
       ...useAppConfig.getState().modelConfig,
       ...useChatStore.getState().currentSession().mask.modelConfig,
@@ -62,17 +69,38 @@ export class ChatGPTApi implements LLMApi {
       },
     };
 
-    const requestPayload = {
-      messages,
-      stream: options.config.stream,
-      model: modelConfig.model,
-      temperature: modelConfig.temperature,
-      presence_penalty: modelConfig.presence_penalty,
-      frequency_penalty: modelConfig.frequency_penalty,
-      top_p: modelConfig.top_p,
-    };
+    let requestPayload: any;
 
-    console.log("[Request] openai payload: ", requestPayload);
+    // 根据模型类型构建不同的请求负载
+    if (modelConfig.model === ("coze-bot" as any)) {
+      // Coze API格式
+      const lastMessage = options.messages[options.messages.length - 1];
+      requestPayload = {
+        bot_id: useAccessStore.getState().cozeBotId || "default_bot",
+        user: "user_" + Date.now(),
+        query: lastMessage.content,
+        stream: options.config.stream,
+        conversation_id: options.conversationId,
+      };
+      console.log("[Request] coze payload: ", requestPayload);
+    } else {
+      // OpenAI格式
+      const messages = options.messages.map((v) => ({
+        role: v.role,
+        content: v.content,
+      }));
+
+      requestPayload = {
+        messages,
+        stream: options.config.stream,
+        model: modelConfig.model,
+        temperature: modelConfig.temperature,
+        presence_penalty: modelConfig.presence_penalty,
+        frequency_penalty: modelConfig.frequency_penalty,
+        top_p: modelConfig.top_p,
+      };
+      console.log("[Request] openai payload: ", requestPayload);
+    }
 
     const shouldStream = !!options.config.stream;
     const controller = new AbortController();
@@ -155,10 +183,26 @@ export class ChatGPTApi implements LLMApi {
             const text = msg.data;
             try {
               const json = JSON.parse(text);
-              const delta = json.choices[0].delta.content;
-              if (delta) {
-                responseText += delta;
-                options.onUpdate?.(responseText, delta);
+
+              // 根据模型类型处理不同的响应格式
+              if (modelConfig.model === ("coze-bot" as any)) {
+                // Coze API响应格式
+                const content =
+                  json.messages?.[0]?.content ||
+                  json.answer ||
+                  json.content ||
+                  "";
+                if (content) {
+                  responseText = content;
+                  options.onUpdate?.(responseText, content);
+                }
+              } else {
+                // OpenAI API响应格式
+                const delta = json.choices?.[0]?.delta?.content;
+                if (delta) {
+                  responseText += delta;
+                  options.onUpdate?.(responseText, delta);
+                }
               }
             } catch (e) {
               console.error("[Request] parse error", text, msg);
@@ -178,7 +222,21 @@ export class ChatGPTApi implements LLMApi {
         clearTimeout(requestTimeoutId);
 
         const resJson = await res.json();
-        const message = this.extractMessage(resJson);
+
+        // 根据模型类型提取不同的响应格式
+        let message: string;
+        if (modelConfig.model === ("coze-bot" as any)) {
+          // Coze API响应格式
+          message =
+            resJson.messages?.[0]?.content ||
+            resJson.answer ||
+            resJson.content ||
+            "";
+        } else {
+          // OpenAI API响应格式
+          message = this.extractMessage(resJson);
+        }
+
         options.onFinish(message);
       }
     } catch (e) {

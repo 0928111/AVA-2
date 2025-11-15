@@ -17,36 +17,12 @@ import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
 
-import { Props } from "../components/visual-props";
-import {getAni} from "./get-animation";
+import { getAni } from "./get-animation";
 import { extractJSONContent } from "../visual/extract";
+import { createMessage, ChatMessage } from "../utils/message";
 
-export type ChatMessage = RequestMessage & {
-  date: string;
-  streaming?: boolean;
-  isError?: boolean;
-  id: string;
-  model?: ModelType;
-};
-const emptyprops: Props = {
-  type: "no_animation",
-  data: [],
-  maxidx: -1,
-  compareidx: -1,
-  messageId: "",
-  newData: [],
-  number: -1,
-};
-export function createMessage(override: Partial<ChatMessage>): ChatMessage {
-  return {
-    id: nanoid(),
-    date: new Date().toLocaleString(),
-    role: "user",
-    content: "",
-    animation: emptyprops,
-    ...override,
-  };
-}
+// Re-export ChatMessage type for backward compatibility
+export type { ChatMessage } from "../utils/message";
 
 export interface ChatStat {
   tokenCount: number;
@@ -183,7 +159,6 @@ const DEFAULT_CHAT_STATE = {
   sessions: [createEmptySession()],
   currentSessionIndex: 0,
 };
-
 
 export const useChatStore = createPersistStore(
   DEFAULT_CHAT_STATE,
@@ -368,7 +343,7 @@ export const useChatStore = createPersistStore(
         // make request
         api.llm.chat({
           messages: sendMessages,
-          config: { ...modelConfig, stream: true },
+          config: { ...modelConfig, stream: false }, // 暂时禁用流式输出，等待后续实现
           onUpdate(message) {
             botMessage.streaming = true;
             if (message) {
@@ -381,12 +356,11 @@ export const useChatStore = createPersistStore(
           onFinish(message) {
             botMessage.streaming = false;
             if (message) {
-              console.log(message);
               botMessage.content = message;
-              
+
               const [ani, ses] = getAni(session, message, botMessage.id);
 
-              botMessage.animation = ani;
+              botMessage.animation = ani as any;
               session = ses;
               get().onNewMessage(botMessage);
             }

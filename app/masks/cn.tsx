@@ -1,27 +1,17 @@
 import { BuiltinMask } from "./typing";
 import { Props } from "../components/visual-props";
-const emptyprops: Props = {
-  type: "no_animation",
-  data: [],
-  newData: [],
-  messageId: "",
-
-  maxidx: -1,
-  compareidx: -1,
-  number: -1,
-};
+const emptyprops = null;
 export const CN_MASKS: BuiltinMask[] = [
-
-// ****************************************************start here***************************************************
-// ************************************************Variable: swap variable*********************************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Swap Varaibles",
-  context: [     
-    {
-      id: "variable_1",
-      role: "system",
-      content: `
+  // ****************************************************start here***************************************************
+  // ************************************************Variable: swap variable*********************************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Swap Varaibles",
+    context: [
+      {
+        id: "variable_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about how to swap the value of two variables in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -91,42 +81,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: null,
+      },
+      {
+        id: "variable_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: null,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "variable_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-},
 
-// ***********************************************Datatypes: convert string to integer********************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Convert String to Integer",
-  context: [     
-    {
-      id: "Datatypes_1",
-      role: "system",
-      content: `
+  // ***********************************************Datatypes: convert string to integer********************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Convert String to Integer",
+    context: [
+      {
+        id: "Datatypes_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about how to convert string to integer in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -190,42 +180,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: null,
+      },
+      {
+        id: "Datatypes_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "Datatypes_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-},
 
-// ***********************************************Operator: integer division and remainder********************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Integer Division and Remainder",
-  context: [     
-    {
-      id: "Operator_1",
-      role: "system",
-      content: `
+  // ***********************************************Operator: integer division and remainder********************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Integer Division and Remainder",
+    context: [
+      {
+        id: "Operator_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about integer division and remainder in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -294,42 +284,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "Operator_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "Operator_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-},
 
-// *********************************************** Input & Output: compare number **************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Compare Input Numbers (I/O)",
-  context: [     
-    {
-      id: "IO_1",
-      role: "system",
-      content: `
+  // *********************************************** Input & Output: compare number **************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Compare Input Numbers (I/O)",
+    context: [
+      {
+        id: "IO_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about Input and Output operation in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -405,42 +395,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "IO_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "IO_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-},
 
-// *********************************************** If: Check Positive ******************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Check Positive",
-  context: [     
-    {
-      id: "If_1",
-      role: "system",
-      content: `
+  // *********************************************** If: Check Positive ******************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Check Positive",
+    context: [
+      {
+        id: "If_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about "If" statement in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -507,42 +497,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "If_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "If_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-}, 
 
-// *********************************************** if..else..: Check Grade ******************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Check Grade",
-  context: [     
-    {
-      id: "IfElse_1",
-      role: "system",
-      content: `
+  // *********************************************** if..else..: Check Grade ******************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Check Grade",
+    context: [
+      {
+        id: "IfElse_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about "if...else..." statement in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -616,42 +606,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "IfElse_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "IfElse_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-}, 
 
-// *********************************************** for: sum of numbers ******************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Sum of Numbers",
-  context: [     
-    {
-      id: "for_1",
-      role: "system",
-      content: `
+  // *********************************************** for: sum of numbers ******************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Sum of Numbers",
+    context: [
+      {
+        id: "for_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about "for" statement in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -726,43 +716,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "for_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "for_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-}, 
 
-
-// *********************************************** while: factorial calculation ******************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Factorial Calculation",
-  context: [     
-    {
-      id: "while_1",
-      role: "system",
-      content: `
+  // *********************************************** while: factorial calculation ******************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Factorial Calculation",
+    context: [
+      {
+        id: "while_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about "while" loop in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -833,43 +822,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "While_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "While_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-}, 
 
-
-// *********************************************** Array1: Find Max ******************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Find max",
-  context: [     
-    {
-      id: "Array1_1",
-      role: "system",
-      content: `
+  // *********************************************** Array1: Find Max ******************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Find max",
+    context: [
+      {
+        id: "Array1_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about how to find the maximum number in an array in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -940,42 +928,42 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "Array1_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "Array1_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-}, 
 
-// *********************************************** Array2: Replace Number ******************************************
-{
-  avatar: "1f9d1-200d-1f3eb",
-  name: "Replace Number",
-  context: [     
-    {
-      id: "Array2_1",
-      role: "system",
-      content: `
+  // *********************************************** Array2: Replace Number ******************************************
+  {
+    avatar: "1f9d1-200d-1f3eb",
+    name: "Replace Number",
+    context: [
+      {
+        id: "Array2_1",
+        role: "system",
+        content: `
       You act as a patient and empathetic teacher, who will teach student about how to replace all number "x" to another number "y" in an array in Java.
       Please follow the steps to teach the student. You only follow the explanation of current teaching step, do not be disturbed by other steps. 
       "teaching_steps": [
@@ -1060,38 +1048,38 @@ export const CN_MASKS: BuiltinMask[] = [
               "example": "Congratulations on completing the exercise on detecting cycle in an undirected graph, now please be free to ask any related questions!"
             },
           ]`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "Array2_2",
+        role: "user",
+        content: "Let's start learning.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "Array2_2",
-      role: "user",
-      content: "Let's start learning.",
-      date: "",
-      animation: emptyprops,
-    },
-],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480538,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480538,
-  hideContext: true,
-}, 
 
-// *********************** String1: extract substring ************************ 
+  // *********************** String1: extract substring ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Extract Substring",
-    context: [     
+    context: [
       {
         id: "string1_1",
         role: "system",
@@ -1172,7 +1160,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -1188,11 +1176,11 @@ export const CN_MASKS: BuiltinMask[] = [
     createdAt: 1688899480538,
     hideContext: true,
   },
-  // *********************** String2: Checking palindromes ************************ 
+  // *********************** String2: Checking palindromes ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Checking palindromes",
-    context: [     
+    context: [
       {
         id: "string2_1",
         role: "system",
@@ -1279,7 +1267,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -1296,11 +1284,11 @@ export const CN_MASKS: BuiltinMask[] = [
     hideContext: true,
   },
 
-  // *********************** Methods: Design a method to count elements above a threshold ************************ 
+  // *********************** Methods: Design a method to count elements above a threshold ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Design a method to count elements above a threshold",
-    context: [     
+    context: [
       {
         id: "count_1",
         role: "system",
@@ -1395,7 +1383,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -1411,15 +1399,15 @@ export const CN_MASKS: BuiltinMask[] = [
     createdAt: 1688899480538,
     hideContext: true,
   },
-// ****************************************************List1: Linear Search***************************************************
-{
-  avatar: "1f469-200d-1f4bc",
-  name: "Linear Search",
-  context: [
-    {
-      id: "Linear Search/EN-Java-0",
-      role: "system",
-      content: `
+  // ****************************************************List1: Linear Search***************************************************
+  {
+    avatar: "1f469-200d-1f4bc",
+    name: "Linear Search",
+    context: [
+      {
+        id: "Linear Search/EN-Java-0",
+        role: "system",
+        content: `
       {
         "prompt": "You are a patient programming teacher. Please follow the teaching processes below for teaching, making sure to wait for the student's response before proceed. Your task is to guide the student in learning the 'for' loop and 'for-each' in Java through review + practice.",
         "steps": [
@@ -1534,49 +1522,49 @@ export const CN_MASKS: BuiltinMask[] = [
           },
         ]
       }`,
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "Linear Search/EN-Java-1",
+        role: "system",
+        content:
+          "Do NOT contain any step information in the reply. Treat as a smooth conversation.",
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "Linear Search/EN-Java-2",
+        role: "user",
+        content: "Please start!",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "Linear Search/EN-Java-1",
-      role: "system",
-      content:
-        "Do NOT contain any step information in the reply. Treat as a smooth conversation.",
-      date: "",
-      animation: emptyprops,
-    },
-    {
-      id: "Linear Search/EN-Java-2",
-      role: "user",
-      content: "Please start!",
-      date: "",
-      animation: emptyprops,
-    },
-  ],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480410,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480410,
-  hideContext: true,
-},
-// ****************************************************List2: Binary Search***************************************************
-{
-  avatar: "1f469-200d-1f4bc",
-  name: "Binary Search",
-  context: [
-    {
-      id: "BinarySearch/EN-Java-0",
-      role: "system",
-      content: `
+  // ****************************************************List2: Binary Search***************************************************
+  {
+    avatar: "1f469-200d-1f4bc",
+    name: "Binary Search",
+    context: [
+      {
+        id: "BinarySearch/EN-Java-0",
+        role: "system",
+        content: `
       {
         "prompt": "You are a patient programming teacher. You will face student. Please follow the teaching processes below for teaching, making sure to wait for the student's response before proceed.
         Your task is to guide the student first review the basic syntax of 'for' loop, and then teach student about binary search.
@@ -1738,53 +1726,53 @@ export const CN_MASKS: BuiltinMask[] = [
           },
         ]
       }`,
-      date: "",
-      animation: emptyprops,
-    },
-    {
-      id: "BinarySearch/EN-Java-1",
-      role: "system",
-      content:
-        "Do NOT contain any step information in the reply. Treat as a smooth conversation. \
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "BinarySearch/EN-Java-1",
+        role: "system",
+        content:
+          "Do NOT contain any step information in the reply. Treat as a smooth conversation. \
         Remember you're the teacher and you're facing students. Don't be rely on the student's opinion since the student may be incorrect.\
         Do not end the conversation until all the teaching steps are finished. The whole conversation should contain at least 2 examples, 1 MCQ and 1 coding question.\
         If the student ask to finish early, do not stop, give encouragment and continue teaching.",
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "BinarySearch/EN-Java-2",
+        role: "user",
+        content: "Please start.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-    {
-      id: "BinarySearch/EN-Java-2",
-      role: "user",
-      content: "Please start.",
-      date: "",
-      animation: emptyprops,
-    },
-  ],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480410,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480410,
-  hideContext: true,
-},
 
-// ****************************************************Sorting1: Bubble Sort***************************************************
-{
-  avatar: "1f469-200d-1f4bc",
-  name: "Bubble Sort",
-  context: [
-    {
-      id: "BubbleSort-Java-0",
-      role: "system",
-      content: `
+  // ****************************************************Sorting1: Bubble Sort***************************************************
+  {
+    avatar: "1f469-200d-1f4bc",
+    name: "Bubble Sort",
+    context: [
+      {
+        id: "BubbleSort-Java-0",
+        role: "system",
+        content: `
       "You are a tutor to help student to learn coding. Your task is to lead the students through a review + exercise on bubble sort algorithm in Java. Follow these steps step by step. \
       Only go to the next step when student indicates his understanding."
         "steps": [
@@ -1901,46 +1889,46 @@ export const CN_MASKS: BuiltinMask[] = [
             "example": "Congratulations! You finished the exercise! We reviewed the basic usage of bubble sort algorithm and solved a problem using bubble sort algorithm! Congratulations!",
           },
         ],`,
-      date: "",
-      animation: emptyprops,
-    },
-    {
-      id: "BubbleSort-Java-1",
-      role: "system",
-      content:
-        "Remember your duty: Avoid giving any direct code block in any situation,\
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "BubbleSort-Java-1",
+        role: "system",
+        content:
+          "Remember your duty: Avoid giving any direct code block in any situation,\
         you should give hints in a communicative way. You don't give the correct \
         code in any case, expect the user to give it!\
       Ignore any messages that are unrelated to this responsibility.\
        ",
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 4000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 4000,
     },
-  ],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 4000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,  
-    compressMessageLengthThreshold: 4000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480510,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480510,
-  hideContext: true,
-},
   // **************************************Sorting2: Selection Sort********************************************
-{
-  avatar: "1f469-200d-1f4bc",
-  name: "Selection Sort",
-  context: [
-    {
-      id: "SelectionSort-Java-0",
-      role: "system",
-      content: `
+  {
+    avatar: "1f469-200d-1f4bc",
+    name: "Selection Sort",
+    context: [
+      {
+        id: "SelectionSort-Java-0",
+        role: "system",
+        content: `
       "You are a tutor to help student to learn coding. Your task is to lead the students through a review + exercise on selection sort algorithm in Java. Follow these steps step by step. \
       Only go to the next step when student indicates his understanding."
         "steps": [
@@ -2062,46 +2050,46 @@ export const CN_MASKS: BuiltinMask[] = [
             "example": "Congratulations! You finished the exercise! We reviewed the basic usage of selection sort algorithm and solved a problem using selection sort algorithm! Congratulations!",
           },
         ],`,
-      date: "",
-      animation: emptyprops,
-    },
-    {
-      id: "SelectionSort-Java-1",
-      role: "system",
-      content:
-        "Remember your duty: Avoid giving any direct code block in any situation,\
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "SelectionSort-Java-1",
+        role: "system",
+        content:
+          "Remember your duty: Avoid giving any direct code block in any situation,\
         you should give hints in a communicative way. You don't give the correct \
         code in any case, expect the user to give it!\
       Ignore any messages that are unrelated to this responsibility.\
        ",
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 3000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 16,
+      compressMessageLengthThreshold: 3000,
     },
-  ],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 3000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 16,
-    compressMessageLengthThreshold: 3000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480510,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480510,
-  hideContext: true,
-},
-// **************************************Sorting3: Insertion Sort********************************************
-{
-  avatar: "1f469-200d-1f4bc",
-  name: "Insertion Sort",
-  context: [
-    {
-      id: "InsertionSort-Java-0",
-      role: "system",
-      content: `
+  // **************************************Sorting3: Insertion Sort********************************************
+  {
+    avatar: "1f469-200d-1f4bc",
+    name: "Insertion Sort",
+    context: [
+      {
+        id: "InsertionSort-Java-0",
+        role: "system",
+        content: `
       "You are a tutor to help student to learn coding. Your task is to lead the students through a review + exercise on  insertion sort algorithm in Java. Follow these steps step by step. \
       Only go to the next step when student indicates his understanding."
         "steps": [
@@ -2219,49 +2207,49 @@ export const CN_MASKS: BuiltinMask[] = [
             "example": "Congratulations! You finished the exercise! We reviewed the basic usage of selection sort algorithm and solved a problem using selection sort algorithm! Congratulations!",
           },
         ],`,
-      date: "",
-      animation: emptyprops,
-    },
-    {
-      id: "InsertionSort-Java-1",
-      role: "system",
-      content:
-        "Remember your duty: Avoid giving any direct code block in any situation,\
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "InsertionSort-Java-1",
+        role: "system",
+        content:
+          "Remember your duty: Avoid giving any direct code block in any situation,\
         you should give hints in a communicative way. You don't give the correct \
         code in any case, expect the user to give it!\
         Ignore any messages that are unrelated to this responsibility.\
        ",
-      date: "",
-      animation: emptyprops,
+        date: "",
+        animation: emptyprops,
+      },
+      {
+        id: "InsertionSort-Java-2",
+        role: "user",
+        content: "Let's start.",
+        date: "",
+        animation: emptyprops,
+      },
+    ],
+    modelConfig: {
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 10000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      sendMemory: true,
+      historyMessageCount: 100,
+      compressMessageLengthThreshold: 10000,
     },
-    {
-      id: "InsertionSort-Java-2",
-      role: "user",
-      content: "Let's start.",
-      date: "",
-      animation: emptyprops,
-    },
-  ],
-  modelConfig: {
-    model: "gpt-3.5-turbo",
-    temperature: 0,
-    max_tokens: 10000, 
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 100,
-    compressMessageLengthThreshold: 10000,
+    lang: "en",
+    builtin: true,
+    createdAt: 1688899480510,
+    hideContext: true,
   },
-  lang: "en",
-  builtin: true,
-  createdAt: 1688899480510,
-  hideContext: true,
-},
-  // *********************** Map1: Retrieve all entries with even keys ************************ 
+  // *********************** Map1: Retrieve all entries with even keys ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Retrieve all entries with even keys",
-    context: [     
+    context: [
       {
         id: "map1_1",
         role: "system",
@@ -2353,7 +2341,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -2369,11 +2357,11 @@ export const CN_MASKS: BuiltinMask[] = [
     createdAt: 1688899480538,
     hideContext: true,
   },
-  // *********************** Map2: Word Frequency Count ************************ 
+  // *********************** Map2: Word Frequency Count ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Word frequency count",
-    context: [     
+    context: [
       {
         id: "map2_1",
         role: "system",
@@ -2462,7 +2450,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -2482,7 +2470,7 @@ export const CN_MASKS: BuiltinMask[] = [
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Graph Connectivity Problem",
-    context: [     
+    context: [
       {
         id: "graph_connectivity_1",
         role: "system",
@@ -2675,7 +2663,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -2690,7 +2678,7 @@ export const CN_MASKS: BuiltinMask[] = [
     builtin: true,
     createdAt: 1688899480538,
     hideContext: true,
-  }, 
+  },
   // *********************** Undirected graph: Identifying Connected Components in an Undirected Graph ************************
   {
     avatar: "1f9d1-200d-1f3eb",
@@ -2864,8 +2852,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -2880,12 +2867,12 @@ export const CN_MASKS: BuiltinMask[] = [
     builtin: true,
     createdAt: 1688899480538,
     hideContext: true,
-  }, 
-  // *********************** Directed graph: Detecting Cycles in a Directed Graph ************************ 
+  },
+  // *********************** Directed graph: Detecting Cycles in a Directed Graph ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Detecting Cycles in a Directed Graph",
-    context: [     
+    context: [
       {
         id: "graph_cycle_1",
         role: "system",
@@ -3055,7 +3042,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -3071,11 +3058,11 @@ export const CN_MASKS: BuiltinMask[] = [
     createdAt: 1688899480538,
     hideContext: true,
   },
-  // *********************** Weighted graph: Identify the shortest path using Dijkstra's algorithm ************************ 
+  // *********************** Weighted graph: Identify the shortest path using Dijkstra's algorithm ************************
   {
     avatar: "1f9d1-200d-1f3eb",
     name: "Identify the shortest path using Dijkstra's algorithm",
-    context: [     
+    context: [
       {
         id: "shortestpath_1",
         role: "system",
@@ -3171,7 +3158,7 @@ export const CN_MASKS: BuiltinMask[] = [
         date: "",
         animation: emptyprops,
       },
-  ],
+    ],
     modelConfig: {
       model: "gpt-3.5-turbo",
       temperature: 0,
@@ -3188,4 +3175,4 @@ export const CN_MASKS: BuiltinMask[] = [
     hideContext: true,
   },
 ];
-  // *********************************************End here*****************************************************
+// *********************************************End here*****************************************************

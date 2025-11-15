@@ -14,13 +14,8 @@ import CopyIcon from "../icons/copy.svg";
 import DragIcon from "../icons/drag.svg";
 
 import { DEFAULT_MASK_AVATAR, Mask, useMaskStore } from "../store/mask";
-import {
-  ChatMessage,
-  createMessage,
-  ModelConfig,
-  useAppConfig,
-  useChatStore,
-} from "../store";
+import { ChatMessage, ModelConfig, useAppConfig, useChatStore } from "../store";
+import { createMessage } from "../utils/message";
 import { ROLES } from "../client/api";
 import {
   Input,
@@ -418,7 +413,7 @@ export function MaskPage() {
   const downloadAll = () => {
     downloadAs(JSON.stringify(masks.filter((v) => !v.builtin)), FileName.Masks);
   };
-  
+
   const importFromFile = () => {
     readFromFile().then((content) => {
       try {
@@ -546,7 +541,7 @@ export function MaskPage() {
                     onClick={() => {
                       chatStore.newSession(m);
                       navigate(Path.Chat);
-                      // syncAndHandleResult(); 
+                      // syncAndHandleResult();
                     }}
                   />
                   {/* 查看mask */}

@@ -1,4 +1,11 @@
-import webpack from "webpack";
+let webpack;
+try {
+  webpack = await import("webpack");
+  webpack = webpack.default || webpack;
+} catch (error) {
+  console.warn("[Next] webpack import failed, using fallback");
+  webpack = { optimize: { LimitChunkCountPlugin: class {} } };
+}
 
 const mode = process.env.BUILD_MODE ?? "standalone";
 console.log("[Next] build mode", mode);
@@ -8,7 +15,9 @@ console.log("[Next] build with chunk: ", !disableChunk);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {},
+  experimental: {
+    turbo: {},
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
