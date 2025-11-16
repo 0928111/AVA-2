@@ -20,21 +20,31 @@ export function extractJSONContent(input: string): string {
   const regex = /<!--([\s\S]*?)-->/g;
   const match = input.match(regex);
   if (match) {
-      const remaining = input.replace(regex, ''); 
-      return remaining;
+    const remaining = input.replace(regex, "");
+    return remaining;
   }
-  return input; 
+  return input;
 }
-export function extractJSONContent_original(input: string): { extracted: string | null; remaining: string } {
+export function extractJSONContent_original(input: string): {
+  extracted: string | null;
+  remaining: string;
+} {
   const regex = /<!--([\s\S]*?)-->/g;
   const match = input.match(regex);
   if (match) {
-      const extracted_ = match[0]; 
-      const remaining = input.replace(regex, ''); 
-      const extracted = extracted_.replace("<!--", "").replace("-->", "");
-      return { extracted, remaining };
+    const extracted_ = match[0];
+    const remaining = input.replace(regex, "");
+    let extracted = extracted_.replace("<!--", "").replace("-->", "");
+
+    // 从提取的内容中截取从第一个 { 到最后一个 } 的子串
+    const jsonMatch = extracted.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      extracted = jsonMatch[0];
+    }
+
+    return { extracted, remaining };
   }
-  return { extracted: null, remaining: input }; 
+  return { extracted: null, remaining: input };
 }
 
 export function extractLastArrayFromString(text: string): number[] {
@@ -75,18 +85,14 @@ export function extractForBinary(str: string): number {
   const c = str.toLowerCase().includes("startIndex = 2".toLowerCase());
   const d = str.toLowerCase().includes("endIndex = 1".toLowerCase());
   const e = str.toLowerCase().includes("endIndex = 5".toLowerCase());
- 
 
-  if (c && d){
+  if (c && d) {
     return 4;
-  }
-  else if (b && d){
+  } else if (b && d) {
     return 3;
-  }
-  else if (a && d){
+  } else if (a && d) {
     return 2;
-  }
-  else if (a && e) {
+  } else if (a && e) {
     return 1;
   }
   return 0;
