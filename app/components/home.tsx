@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./home.module.scss";
 import {
-  PAGERANK_CONVERGED,
-  PAGERANK_ITERATION_1,
-  PAGERANK_SAMPLE_DATA,
+  PAGERANK_STEP_0,
+  PAGERANK_STEP_1,
+  PAGERANK_STEP_2,
 } from "../visual/pagerank-sample";
 import { extractJSONContent_original } from "../visual/extract";
 import { PageRankMasks } from "../masks/pagerank";
@@ -72,8 +72,9 @@ type ChatBubble = {
 export default function Home() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [statusText, setStatusText] =
-    useState("初始化阶段：所有节点权重相同。");
+  const [statusText, setStatusText] = useState(
+    "第 1 步：100 个访问者平均分给 A、B、C、D，各 25 人。",
+  );
   const [chatMessages, setChatMessages] = useState<ChatBubble[]>(() => [
     {
       type: "ai",
@@ -82,7 +83,7 @@ export default function Home() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [graphData, setGraphData] = useState<GraphData>({
-    ...PAGERANK_SAMPLE_DATA,
+    ...PAGERANK_STEP_0,
     algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
     maxIterations: PAGERANK_PROTOCOL.DEFAULT_PARAMS.MAX_ITERATIONS,
     dampingFactor: PAGERANK_PROTOCOL.DEFAULT_PARAMS.DAMPING_FACTOR,
@@ -96,9 +97,18 @@ export default function Home() {
   // 左侧步骤（示例用的三步）
   const steps = useMemo(
     () => [
-      { msg: "初始化阶段：所有节点权重相同。", data: PAGERANK_SAMPLE_DATA },
-      { msg: "第一次迭代：权重开始传递。", data: PAGERANK_ITERATION_1 },
-      { msg: "收敛阶段：权重分布稳定。", data: PAGERANK_CONVERGED },
+      {
+        msg: "第 1 步：100 个访问者平均分给 A、B、C、D，各 25 人。",
+        data: PAGERANK_STEP_0,
+      },
+      {
+        msg: "第 2 步：根据链接重新分配，得到 A=23，B=17，C=50，D=10。",
+        data: PAGERANK_STEP_1,
+      },
+      {
+        msg: "第 3 步：继续迭代，人数基本不再变化，此时人数代表 PageRank。",
+        data: PAGERANK_STEP_2,
+      },
     ],
     [],
   );
