@@ -95,6 +95,11 @@ if (mode !== "export") {
         source: "/sharegpt",
         destination: "https://sharegpt.com/api/conversations",
       },
+      // 图片代理转发，解决跨域问题
+      {
+        source: "/proxy-image/:path*",
+        destination: "/api/image-proxy?url=:path*",
+      },
     ];
 
     return {
