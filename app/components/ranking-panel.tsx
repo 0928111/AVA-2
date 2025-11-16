@@ -4,7 +4,7 @@ import styles from "./home.module.scss";
 interface Node {
   id: string;
   label?: string;
-  rank: number;
+  rank?: number; // 改为可选，与pagerank-protocol保持一致
 }
 
 interface GraphData {
@@ -22,7 +22,9 @@ const RankingPanel: React.FC<RankingPanelProps> = ({ graphData }) => {
   // 按rank值从高到低排序
   const sortedNodes = React.useMemo(() => {
     if (!graphData?.nodes) return [];
-    return [...graphData.nodes].sort((a, b) => b.rank - a.rank);
+    return [...graphData.nodes]
+      .filter((node) => node.rank !== undefined) // 过滤掉rank为undefined的节点
+      .sort((a, b) => (b.rank || 0) - (a.rank || 0));
   }, [graphData]);
 
   return (
@@ -36,7 +38,7 @@ const RankingPanel: React.FC<RankingPanelProps> = ({ graphData }) => {
               {node.label || node.id}
             </span>
             <span className={styles["node-votes"]}>
-              {Math.round(node.rank * TOTAL_VISITORS)}票
+              {Math.round((node.rank || 0) * TOTAL_VISITORS)}票
             </span>
           </div>
         ))}
