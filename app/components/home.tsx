@@ -17,6 +17,7 @@ import {
   PAGERANK_PROTOCOL,
 } from "../api/protocols/pagerank-protocol";
 import type { GraphData } from "../api/protocols/pagerank-protocol";
+import RankingPanel from "./ranking-panel";
 
 // 引入现有的API客户端
 import { api } from "../client/api";
@@ -72,9 +73,7 @@ type ChatBubble = {
 export default function Home() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [statusText, setStatusText] = useState(
-    "第 1 步：100 个访问者平均分给 A、B、C、D，各 25 人。",
-  );
+
   const [chatMessages, setChatMessages] = useState<ChatBubble[]>(() => [
     {
       type: "ai",
@@ -98,15 +97,12 @@ export default function Home() {
   const steps = useMemo(
     () => [
       {
-        msg: "第 1 步：100 个访问者平均分给 A、B、C、D，各 25 人。",
         data: PAGERANK_STEP_0,
       },
       {
-        msg: "第 2 步：根据链接重新分配，得到 A=23，B=17，C=50，D=10。",
         data: PAGERANK_STEP_1,
       },
       {
-        msg: "第 3 步：继续迭代，人数基本不再变化，此时人数代表 PageRank。",
         data: PAGERANK_STEP_2,
       },
     ],
@@ -116,7 +112,6 @@ export default function Home() {
   const handleNextStep = () => {
     setCurrentStep((prevStep) => {
       const nextStep = (prevStep + 1) % steps.length;
-      setStatusText(steps[nextStep].msg);
       setGraphData(steps[nextStep].data);
       return nextStep;
     });
@@ -125,7 +120,6 @@ export default function Home() {
   const handlePrevStep = () => {
     setCurrentStep((prevStep) => {
       const prevStepIndex = prevStep === 0 ? steps.length - 1 : prevStep - 1;
-      setStatusText(steps[prevStepIndex].msg);
       setGraphData(steps[prevStepIndex].data);
       return prevStepIndex;
     });
@@ -133,7 +127,6 @@ export default function Home() {
 
   const handleReset = () => {
     setCurrentStep(0);
-    setStatusText(steps[0].msg);
     setGraphData({
       ...steps[0].data,
       algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
@@ -466,12 +459,7 @@ Explain the algorithm clearly and show how the PageRank values change with each 
       <div className={styles["home-content"]}>
         {/* 左侧控制区 */}
         <div className={styles["home-sidebar"]}>
-          <div
-            id="statusText"
-            className={`${styles["home-status"]} ${styles["fade-in"]}`}
-          >
-            {statusText}
-          </div>
+          <RankingPanel graphData={graphData} />
 
           <div className={styles["home-controls"]}>
             <button

@@ -3,10 +3,10 @@ import type { GraphData } from "../api/protocols/pagerank-protocol";
 // 第 0 步：100 人平均分配
 export const PAGERANK_STEP_0: GraphData = {
   nodes: [
-    { id: "A", label: "A", rank: 0.25, x: 100, y: 100 },
-    { id: "B", label: "B", rank: 0.25, x: 250, y: 100 },
-    { id: "C", label: "C", rank: 0.25, x: 175, y: 200 },
-    { id: "D", label: "D", rank: 0.25, x: 50, y: 200 },
+    { id: "A", label: "书法", rank: 0.25, x: 120, y: 120 },
+    { id: "B", label: "敦煌壁画", rank: 0.25, x: 300, y: 120 },
+    { id: "C", label: "京剧", rank: 0.25, x: 210, y: 250 },
+    { id: "D", label: "茶文化", rank: 0.25, x: 80, y: 250 },
   ],
   links: [
     { source: "A", target: "B", weight: 1 },
@@ -25,10 +25,10 @@ export const PAGERANK_STEP_0: GraphData = {
 // 第 1 步：教材给出的 23,17,50,10
 export const PAGERANK_STEP_1: GraphData = {
   nodes: [
-    { id: "A", label: "A", rank: 0.23, x: 100, y: 100 },
-    { id: "B", label: "B", rank: 0.17, x: 250, y: 100 },
-    { id: "C", label: "C", rank: 0.5, x: 175, y: 200 },
-    { id: "D", label: "D", rank: 0.1, x: 50, y: 200 },
+    { id: "A", label: "书法", rank: 0.23, x: 120, y: 120 },
+    { id: "B", label: "敦煌壁画", rank: 0.17, x: 300, y: 120 },
+    { id: "C", label: "京剧", rank: 0.5, x: 210, y: 250 },
+    { id: "D", label: "茶文化", rank: 0.1, x: 80, y: 250 },
   ],
   links: [
     { source: "A", target: "B", weight: 1 },

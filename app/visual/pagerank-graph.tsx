@@ -241,22 +241,31 @@ const PageRankGraph: React.FC<Props> = ({
           .data(nodes)
           .enter()
           .append("text")
-          .text((d: any) => d.id)
+          .text((d: any) => d.label || d.id)
           .attr("text-anchor", "middle")
           .attr("dy", ".35em")
-          .attr("font-size", "12px")
+          .attr("font-size", (d: any) => {
+            // 根据标签长度调整字体大小
+            const text = d.label || d.id;
+            if (text.length > 4) return "10px";
+            if (text.length > 2) return "11px";
+            return "12px";
+          })
           .attr("font-weight", "600")
           .attr("fill", "#1e293b")
           .style("transition", "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)");
 
         // 添加PageRank值标签
+        const TOTAL_VISITORS = 100;
         const rankLabel = svg
           .append("g")
           .selectAll("text")
           .data(nodes)
           .enter()
           .append("text")
-          .text((d: any) => (d.rank || 0.15).toFixed(3)) // 简化显示，只显示数值
+          .text(
+            (d: any) => `${Math.round((d.rank || 0.15) * TOTAL_VISITORS)}票`,
+          ) // 显示票数格式
           .attr("text-anchor", "middle")
           .attr("dy", "2.8em") // 进一步增加垂直间距，避开边的显示区域
           .attr("font-size", "10px") // 适当减小字体，更精致
