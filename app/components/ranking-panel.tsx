@@ -9,7 +9,13 @@ interface Node {
 
 interface GraphData {
   nodes: Node[];
-  links?: any[];
+  links?: Array<{
+    source: string;
+    target: string;
+    weight?: number;
+    flow?: number; // 边流量记录
+    [key: string]: any;
+  }>;
 }
 
 interface RankingPanelProps {

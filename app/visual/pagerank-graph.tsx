@@ -206,6 +206,26 @@ const PageRankGraph: React.FC<Props> = ({
           .attr("data-source", (d: any) => d.source.id)
           .attr("data-target", (d: any) => d.target.id);
 
+        // 添加流量数字显示
+        const flowLabel = svg
+          .append("g")
+          .selectAll("text")
+          .data(links)
+          .enter()
+          .append("text")
+          .text((d: any) => Math.round(d.flow || 0))
+          .attr("text-anchor", "middle")
+          .attr("font-size", "10px")
+          .attr("font-weight", "700")
+          .attr("fill", "#1e293b")
+          .attr("stroke", "#ffffff")
+          .attr("stroke-width", "2px")
+          .attr("paint-order", "stroke")
+          .attr("stroke-linejoin", "round")
+          .attr("stroke-linecap", "round")
+          .style("pointer-events", "none")
+          .style("z-index", "1000");
+
         // 绘制节点
         const node = svg
           .append("g")
@@ -372,6 +392,79 @@ const PageRankGraph: React.FC<Props> = ({
           label.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
 
           rankLabel.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+
+          // 更新流量标签位置（显示在边的中点）
+          flowLabel
+            .attr("x", (d: any) => {
+              const dx = d.target.x - d.source.x;
+              const dy = d.target.y - d.source.y;
+              const dr = Math.sqrt(dx * dx + dy * dy);
+
+              // 检查是否为双向边
+              const isBidirectional = bidirectionalPairs.has(
+                [d.source.id, d.target.id].sort().join("-"),
+              );
+
+              if (isBidirectional) {
+                // 双向边：计算平行线的中点
+                const offset = 15; // 平行线偏移量
+                const midX = (d.source.x + d.target.x) / 2;
+                const midY = (d.source.y + d.target.y) / 2;
+
+                // 计算垂直向量（垂直于连接线的方向）
+                const perpX = -dy / dr;
+                const perpY = dx / dr;
+
+                // 确定哪条线在"上方"，通过边的方向决定
+                const pairKey = [d.source.id, d.target.id].sort().join("-");
+                const isFirstEdge = d.source.id < d.target.id;
+                const direction = isFirstEdge ? 1 : -1;
+
+                // 计算控制点偏移
+                const controlOffsetX = perpX * offset * direction;
+                const controlOffsetY = perpY * offset * direction;
+
+                return midX + controlOffsetX;
+              } else {
+                // 单向边：直接使用中点
+                return (d.source.x + d.target.x) / 2;
+              }
+            })
+            .attr("y", (d: any) => {
+              const dx = d.target.x - d.source.x;
+              const dy = d.target.y - d.source.y;
+              const dr = Math.sqrt(dx * dx + dy * dy);
+
+              // 检查是否为双向边
+              const isBidirectional = bidirectionalPairs.has(
+                [d.source.id, d.target.id].sort().join("-"),
+              );
+
+              if (isBidirectional) {
+                // 双向边：计算平行线的中点
+                const offset = 15; // 平行线偏移量
+                const midX = (d.source.x + d.target.x) / 2;
+                const midY = (d.source.y + d.target.y) / 2;
+
+                // 计算垂直向量（垂直于连接线的方向）
+                const perpX = -dy / dr;
+                const perpY = dx / dr;
+
+                // 确定哪条线在"上方"，通过边的方向决定
+                const pairKey = [d.source.id, d.target.id].sort().join("-");
+                const isFirstEdge = d.source.id < d.target.id;
+                const direction = isFirstEdge ? 1 : -1;
+
+                // 计算控制点偏移
+                const controlOffsetX = perpX * offset * direction;
+                const controlOffsetY = perpY * offset * direction;
+
+                return midY + controlOffsetY;
+              } else {
+                // 单向边：直接使用中点
+                return (d.source.y + d.target.y) / 2;
+              }
+            });
         });
 
         // 入场动画

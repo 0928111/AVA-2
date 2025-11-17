@@ -12,6 +12,7 @@ import {
 import { extractJSONContent_original } from "../visual/extract";
 import { PageRankMasks } from "../masks/pagerank";
 import { useAccessStore } from "../store";
+import { runVotingStep } from "../utils/vote-flow";
 import {
   PageRankProtocolValidator,
   PAGERANK_PROTOCOL,
@@ -72,7 +73,10 @@ type ChatBubble = {
 
 export default function Home() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
+  // 迭代历史驱动图
+  const [iterations, setIterations] = useState<GraphData[]>([PAGERANK_STEP_0]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const graphData = iterations[currentIndex];
 
   const [chatMessages, setChatMessages] = useState<ChatBubble[]>(() => [
     {
@@ -81,62 +85,49 @@ export default function Home() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [graphData, setGraphData] = useState<GraphData>({
-    ...PAGERANK_STEP_0,
-    algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
-    maxIterations: PAGERANK_PROTOCOL.DEFAULT_PARAMS.MAX_ITERATIONS,
-    dampingFactor: PAGERANK_PROTOCOL.DEFAULT_PARAMS.DAMPING_FACTOR,
-    threshold: PAGERANK_PROTOCOL.DEFAULT_PARAMS.THRESHOLD,
-  });
   const [isLoading, setIsLoading] = useState(false);
   const [currentController, setCurrentController] =
     useState<AbortController | null>(null);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
 
-  // 左侧步骤（示例用的三步）
-  const steps = useMemo(
-    () => [
-      {
-        data: PAGERANK_STEP_0,
-      },
-      {
-        data: PAGERANK_STEP_1,
-      },
-      {
-        data: PAGERANK_STEP_2,
-      },
-    ],
-    [],
-  );
-
   const handleNextStep = () => {
-    setCurrentStep((prevStep) => {
-      const nextStep = (prevStep + 1) % steps.length;
-      setGraphData(steps[nextStep].data);
-      return nextStep;
-    });
+    if (currentIndex < iterations.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setChatMessages((m) => [
+        ...m,
+        { type: "ai", content: `▶️ 已切换到第 ${currentIndex + 1} 轮。` },
+      ]);
+    } else {
+      const current = iterations[currentIndex];
+      const next = runVotingStep(current);
+      setIterations([...iterations, next]);
+      setCurrentIndex(currentIndex + 1);
+      setChatMessages((m) => [
+        ...m,
+        {
+          type: "ai",
+          content: `▶️ 已计算第 ${currentIndex + 1} 轮投票流动结果。`,
+        },
+      ]);
+    }
   };
 
   const handlePrevStep = () => {
-    setCurrentStep((prevStep) => {
-      const prevStepIndex = prevStep === 0 ? steps.length - 1 : prevStep - 1;
-      setGraphData(steps[prevStepIndex].data);
-      return prevStepIndex;
-    });
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setChatMessages((m) => [
+        ...m,
+        { type: "ai", content: `◀️ 已回退到第 ${currentIndex - 1} 轮。` },
+      ]);
+    }
   };
 
   const handleReset = () => {
-    setCurrentStep(0);
-    setGraphData({
-      ...steps[0].data,
-      algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
-      maxIterations: PAGERANK_PROTOCOL.DEFAULT_PARAMS.MAX_ITERATIONS,
-      dampingFactor: PAGERANK_PROTOCOL.DEFAULT_PARAMS.DAMPING_FACTOR,
-      threshold: PAGERANK_PROTOCOL.DEFAULT_PARAMS.THRESHOLD,
-    });
-    setChatMessages((prev) => [
-      ...prev,
-      { type: "ai", content: "🔄 已重置到初始状态。" },
+    setIterations([PAGERANK_STEP_0]);
+    setCurrentIndex(0);
+    setChatMessages((m) => [
+      ...m,
+      { type: "ai", content: "🔄 已重置到第 0 轮（四节点各 25 票）。" },
     ]);
   };
 
@@ -322,30 +313,42 @@ Explain the algorithm clearly and show how the PageRank values change with each 
                 const graphDataToUpdate = parsed.graph_data ?? parsed;
 
                 // 验证必要的字段
-                if (
-                  graphDataToUpdate.nodes &&
-                  graphDataToUpdate.links &&
-                  graphDataToUpdate.currentIteration !== undefined
-                ) {
-                  // 确保图数据符合协议格式
-                  const updatedGraphData: GraphData = {
-                    ...graphDataToUpdate,
-                    algo:
-                      graphDataToUpdate.algo ||
-                      PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
+                if (graphDataToUpdate.nodes && graphDataToUpdate.links) {
+                  // 只拿两样东西用来"改图"：nodes 和 links
+                  // 其他字段（rank/currentIteration/maxIterations/dampingFactor/threshold/...）一律忽略
+                  const { nodes, links } = graphDataToUpdate;
+
+                  // 对新的 nodes/links，本地用自己的逻辑重置成第 0 轮（平均分票）
+                  const nodeCount = nodes.length;
+                  const initialRank = 1 / nodeCount; // rank 总和为 1，展示时乘以100得到正确票数
+
+                  const initialGraphData: GraphData = {
+                    nodes: nodes.map((node: any) => ({
+                      ...node,
+                      rank: initialRank, // 重置为平均分票
+                    })),
+                    links: links.map((link: any) => ({
+                      ...link,
+                      flow: 0, // 初始化流量为0
+                    })),
+                    algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
+                    currentIteration: 0,
                     maxIterations:
-                      graphDataToUpdate.maxIterations ||
                       PAGERANK_PROTOCOL.DEFAULT_PARAMS.MAX_ITERATIONS,
                     dampingFactor:
-                      graphDataToUpdate.dampingFactor ||
                       PAGERANK_PROTOCOL.DEFAULT_PARAMS.DAMPING_FACTOR,
-                    threshold:
-                      graphDataToUpdate.threshold ||
-                      PAGERANK_PROTOCOL.DEFAULT_PARAMS.THRESHOLD,
+                    threshold: PAGERANK_PROTOCOL.DEFAULT_PARAMS.THRESHOLD,
                   };
 
-                  setGraphData(updatedGraphData);
-                  console.log("[Home] 图数据更新成功，符合协议格式");
+                  // 重置迭代历史，用 runVotingStep + iterations/currentIndex 接管后面的所有计算和动画
+                  setIterations([initialGraphData]);
+                  setCurrentIndex(0);
+                  console.log(
+                    "[Home] 图数据重置为第0轮，节点数:",
+                    nodeCount,
+                    "初始票数:",
+                    initialRank,
+                  );
                 } else {
                   console.warn("[Home] JSON格式不完整，缺少必要字段");
                 }
@@ -492,7 +495,7 @@ Explain the algorithm clearly and show how the PageRank values change with each 
             <PageRankGraph
               json={graphData}
               messageId="home-demo"
-              currentStep={currentStep}
+              currentStep={graphData.currentIteration}
             />
           </div>
         </div>
