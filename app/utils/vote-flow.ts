@@ -87,5 +87,12 @@ export function runVotingStep(graph: GraphData): GraphData {
     });
   }
 
+  // 确保所有links都有flow属性，即使为0
+  result.links.forEach((link) => {
+    if (link.flow === undefined) {
+      link.flow = 0;
+    }
+  });
+
   return result;
 }

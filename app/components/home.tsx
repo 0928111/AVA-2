@@ -60,7 +60,7 @@ const PageRankGraph = dynamic(() => import("../visual/pagerank-graph"), {
         color: "#64748b",
       }}
     >
-      加载 PageRank 可视化...
+      Loading PageRank visualization...
     </div>
   ),
 });
@@ -99,6 +99,15 @@ export default function Home() {
       ]);
     } else {
       const current = iterations[currentIndex];
+      // 在runVotingStep之前添加console.log检查links
+      console.log("当前links:", current.links);
+      // 检查茶文化（D）节点是否有target为"D"的边
+      const hasTargetD = current.links.some((link) => link.target === "D");
+      if (hasTargetD) {
+        console.log(
+          "发现指向茶文化节点(D)的边，这可能是茶文化节点rank不会变为0的原因",
+        );
+      }
       const next = runVotingStep(current);
       setIterations([...iterations, next]);
       setCurrentIndex(currentIndex + 1);
@@ -123,7 +132,29 @@ export default function Home() {
   };
 
   const handleReset = () => {
-    setIterations([PAGERANK_STEP_0]);
+    // 确保真的回到教材定义的 Step0 状态
+    const step0Data = {
+      nodes: [
+        { id: "A", label: "书法", rank: 0.25, x: 120, y: 120 },
+        { id: "B", label: "敦煌壁画", rank: 0.25, x: 300, y: 120 },
+        { id: "C", label: "京剧", rank: 0.25, x: 210, y: 250 },
+        { id: "D", label: "茶文化", rank: 0.25, x: 80, y: 250 },
+      ],
+      links: [
+        { source: "A", target: "B", weight: 1 },
+        { source: "A", target: "C", weight: 1 },
+        { source: "B", target: "C", weight: 1 },
+        { source: "C", target: "A", weight: 1 },
+        { source: "D", target: "C", weight: 1 },
+      ],
+      currentIteration: 0,
+      maxIterations: 3,
+      dampingFactor: 0.85,
+      threshold: 0.0001,
+      algo: "pagerank",
+    };
+
+    setIterations([step0Data]);
     setCurrentIndex(0);
     setChatMessages((m) => [
       ...m,
