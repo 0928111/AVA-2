@@ -77,7 +77,10 @@ const PageRankGraph: React.FC<Props> = ({
         const hasAnyFlow = linksSource.some(
           (link: any) => typeof link.flow === "number",
         );
-        if (!hasAnyFlow && linksSource.length > 0) {
+        const shouldComputeFlow = currentStep > 0 && !hasAnyFlow;
+
+        // Only backfill flow values for non-initial steps; step 0 should show 0 flow
+        if (shouldComputeFlow && linksSource.length > 0) {
           try {
             const computed = runVotingStep(json as GraphData);
             linksSource = computed.links as any[];
