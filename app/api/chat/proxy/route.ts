@@ -1,316 +1,306 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPb } from "@/app/server/pb";
-import { auth } from "@/app/api/auth";
+import { auth } from "../../auth";
+import PocketBase from "pocketbase";
 
-// 请求体结构
-interface ChatProxyRequest {
-  student_id: string;
-  messages: Array<{
-    role: string;
-    content: string;
-  }>;
-  bot_id?: string;
+// 使用 Node.js runtime 避免 Edge runtime 的网络限制
+export const runtime = "nodejs";
+
+// 验证学生ID是否有效
+async function validateStudentId(student_id: string): Promise<boolean> {
+  // 特殊用户：root用户始终有效
+  if (student_id === "root") {
+    console.log("[Chat Proxy] root用户验证通过");
+    return true;
+  }
+
+  // 检查格式：8位数字
+  if (!/^\d{8}$/.test(student_id)) {
+    console.log("[Chat Proxy] 学生ID格式无效:", student_id);
+    return false;
+  }
+
+  // 检查年份：前4位应该是合理的年份（2010-2029）
+  const year = parseInt(student_id.substring(0, 4));
+  const currentYear = new Date().getFullYear();
+  if (year < 2010 || year > currentYear + 5) {
+    console.log("[Chat Proxy] 学生ID年份无效:", year);
+    return false;
+  }
+
+  return true;
 }
 
-// 处理聊天代理请求
-async function handleChatProxyRequest(req: NextRequest) {
-  try {
-    const body: ChatProxyRequest = await req.json();
-    const { student_id, messages, bot_id } = body;
+export async function POST(req: NextRequest) {
+  console.log("[Chat Proxy] 收到新的聊天请求");
 
-    // 验证请求参数
+  try {
+    // 提前读取请求体，后续复用，避免重复读取
+    let requestBody: any = null;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      console.warn("[Chat Proxy] 解析请求体失败，可能为空:", error);
+    }
+
+    // 基础参数校验：消息列表必填
     if (
-      !student_id ||
-      !messages ||
-      !Array.isArray(messages) ||
-      messages.length === 0
+      !requestBody ||
+      !requestBody.messages ||
+      !Array.isArray(requestBody.messages) ||
+      requestBody.messages.length === 0
     ) {
+      console.error("[Chat Proxy] 请求体缺少消息列表");
       return NextResponse.json(
-        { error: "Missing required parameters: student_id or messages" },
+        { error: "Invalid request: messages required" },
         { status: 400 },
       );
     }
 
-    console.log("[Chat Proxy] 收到请求:", {
-      student_id,
-      messageCount: messages.length,
-    });
+    // 1. 获取并验证学生ID
+    const student_id =
+      req.headers.get("X-Student-ID") ||
+      requestBody?.student_id ||
+      requestBody?.studentId;
+    console.log("[Chat Proxy] 学生ID:", student_id);
 
-    // 连接 PocketBase
-    let pb;
-    try {
-      pb = await getPb();
-      if (!pb) {
-        console.error("[Chat Proxy] 未能获取 PocketBase 实例");
+    if (!student_id) {
+      console.error("[Chat Proxy] 缺少学生ID");
+      return NextResponse.json(
+        { error: "Missing student ID" },
+        { status: 401 },
+      );
+    }
+
+    if (!(await validateStudentId(student_id))) {
+      console.error("[Chat Proxy] 学生ID验证失败");
+      return NextResponse.json(
+        { error: "Invalid student ID format" },
+        { status: 401 },
+      );
+    }
+
+    // 2. 验证用户认证
+    const authResult = await auth(req);
+    console.log("[Chat Proxy] 认证结果:", authResult ? "成功" : "失败");
+
+    if (!authResult) {
+      console.error("[Chat Proxy] 用户认证失败");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // root用户特殊处理：直接转发到coze-chat，跳过所有数据库操作
+    if (student_id === "root") {
+      console.log(
+        "[Proxy Route] Root user detected, bypassing database operations",
+      );
+
+      try {
+        // 直接转发到coze-chat路由，保持原有的消息格式
+        const cozeResponse = await fetch(
+          `http://localhost:3000/api/coze-chat`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messages: requestBody.messages, // 传递完整的messages数组
+              bot_id: "coze-bot",
+            }),
+          },
+        );
+
+        if (!cozeResponse.ok) {
+          const errorText = await cozeResponse.text();
+          console.error("[Proxy Route] Coze chat error:", errorText);
+          throw new Error(`Coze chat failed: ${cozeResponse.status}`);
+        }
+
+        const cozeData = await cozeResponse.json();
+
+        // 直接返回coze-chat的响应数据，保持格式一致
+        return NextResponse.json(cozeData);
+      } catch (error) {
+        console.error("[Proxy Route] Root user request failed:", error);
         return NextResponse.json(
-          { error: "Failed to connect to database" },
+          { error: "Root user request failed" },
           { status: 500 },
         );
       }
-      if (!pb.authStore.isValid) {
-        console.warn("[Chat Proxy] PocketBase 未认证，将按集合规则访问");
-      }
-    } catch (authError) {
-      console.error("[Chat Proxy] PocketBase 连接失败:");
-      console.error(
-        "错误类型:",
-        authError instanceof Error
-          ? authError.constructor.name
-          : typeof authError,
+    }
+
+    // 对于普通用户，进行数据库验证
+    // 3. 连接PocketBase
+    const pbUrl = process.env.POCKETBASE_URL || "http://127.0.0.1:8090";
+    const pb = new PocketBase(pbUrl);
+    console.log("[Chat Proxy] PocketBase连接成功:", pbUrl);
+
+    // 4. 管理员认证
+    try {
+      await pb.admins.authWithPassword(
+        process.env.POCKETBASE_ADMIN_EMAIL || "admin@example.com",
+        process.env.POCKETBASE_ADMIN_PASSWORD || "admin123",
       );
-      console.error(
-        "错误消息:",
-        authError instanceof Error ? authError.message : String(authError),
-      );
+      console.log("[Chat Proxy] 管理员认证成功");
+    } catch (error) {
+      console.error("[Chat Proxy] 管理员认证失败:", error);
       return NextResponse.json(
-        {
-          error:
-            authError instanceof Error
-              ? authError.message
-              : "Database connection failed",
-        },
+        { error: "Database authentication failed" },
         { status: 500 },
       );
     }
 
-    // 1. 查找或创建学生记录
+    // 5. 查找学生记录
     let student;
     try {
-      // 先尝试查找学生
       const records = await pb.collection("students").getList(1, 1, {
         filter: `student_id = "${student_id}"`,
       });
 
-      if (records.items.length > 0) {
-        student = records.items[0];
-        console.log("[Chat Proxy] 找到学生记录:", student.id);
-      } else {
-        // 创建新学生记录
+      if (records.items.length === 0) {
+        console.log("[Chat Proxy] 学生记录不存在，创建新记录");
         student = await pb.collection("students").create({
           student_id: student_id,
-          quota: 100, // 默认配额
           used: 0,
-          // 移除 created_at，让数据库自动生成
+          max_usage: 100,
         });
-        console.log("[Chat Proxy] 创建学生记录:", student.id);
+        console.log("[Chat Proxy] 学生记录创建成功");
+      } else {
+        student = records.items[0];
+        console.log("[Chat Proxy] 找到学生记录，当前使用次数:", student.used);
       }
     } catch (error) {
-      console.error("[Chat Proxy] 学生记录操作失败:");
-      console.error(
-        "错误类型:",
-        error instanceof Error ? error.constructor.name : typeof error,
-      );
-      console.error(
-        "错误消息:",
-        error instanceof Error ? error.message : String(error),
-      );
-      // 如果是PocketBase的ClientResponseError，打印更多详情
-      if (error && typeof error === "object" && "response" in error) {
-        console.error("响应状态:", (error as any).response?.code || "未知");
-        console.error("响应消息:", (error as any).response?.message || "未知");
-        console.error("响应数据:", (error as any).response?.data || "未知");
-      }
+      console.error("[Chat Proxy] 查找学生记录失败:", error);
       return NextResponse.json(
-        {
-          error:
-            error instanceof Error
-              ? error.message
-              : "Database operation failed",
-        },
+        { error: "Failed to find student record" },
         { status: 500 },
       );
     }
 
-    // 2. 检查配额
-    if (student.used >= student.quota) {
-      console.log("[Chat Proxy] 配额不足:", {
-        used: student.used,
-        quota: student.quota,
-      });
-      return NextResponse.json({ error: "本期额度已用完" }, { status: 429 });
-    }
-
-    // 3. 创建对话记录
-    let conversation;
-    try {
-      conversation = await pb.collection("conversations").create({
-        student: student.id, // 使用正确的关联字段名
-        coze_conversation_id: "", // 暂时留空，后续需要时填充
-        title: `对话 ${new Date().toLocaleString()}`,
-        // 移除 created_at，让数据库自动生成
-      });
-      console.log("[Chat Proxy] 创建对话记录:", conversation.id);
-    } catch (error) {
-      console.error("[Chat Proxy] 对话记录创建失败:");
-      console.error(
-        "错误类型:",
-        error instanceof Error ? error.constructor.name : typeof error,
-      );
-      console.error(
-        "错误消息:",
-        error instanceof Error ? error.message : String(error),
-      );
+    // 6. 检查使用限制
+    if (student.used >= student.max_usage) {
+      console.log("[Chat Proxy] 使用次数已达上限");
       return NextResponse.json(
-        {
-          error:
-            error instanceof Error
-              ? error.message
-              : "Failed to create conversation",
-        },
-        { status: 500 },
+        { error: "Usage limit exceeded" },
+        { status: 403 },
       );
     }
 
-    // 4. 保存用户消息到 messages 表
-    const lastMessage = messages[messages.length - 1];
-    let userMessage;
+    // 7. 获取请求体中的消息内容
+    let userMessage = "";
     try {
-      userMessage = await pb.collection("messages").create({
-        conversation: conversation.id, // 使用正确的关联字段名
-        role: "user",
-        content: lastMessage.content,
-        // 移除 created_at，让数据库自动生成
-      });
-      console.log("[Chat Proxy] 保存用户消息:", userMessage.id);
-    } catch (error) {
-      console.error("[Chat Proxy] 用户消息保存失败:", error);
-      return NextResponse.json(
-        { error: "Failed to save user message" },
-        { status: 500 },
-      );
-    }
-
-    // 5. 转发请求到 Coze API
-    let cozeResponse;
-    try {
-      // 构建转发请求
-      const cozePayload = {
-        messages: messages,
-        bot_id: bot_id,
-      };
-
-      console.log("[Chat Proxy] 转发到 Coze API...");
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/coze-chat`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // 传递原始请求的认证头
-            Authorization: req.headers.get("Authorization") || "",
-          },
-          body: JSON.stringify(cozePayload),
-        },
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Coze API error: ${errorText}`);
+      if (
+        requestBody.messages &&
+        Array.isArray(requestBody.messages) &&
+        requestBody.messages.length > 0
+      ) {
+        const lastMessage =
+          requestBody.messages[requestBody.messages.length - 1];
+        userMessage = lastMessage.content || "";
       }
+      console.log(
+        "[Chat Proxy] 用户消息:",
+        userMessage.substring(0, 100) + (userMessage.length > 100 ? "..." : ""),
+      );
+    } catch (error) {
+      console.error("[Chat Proxy] 解析请求体失败:", error);
+      userMessage = "";
+    }
 
-      // 检查是否是流式请求
-      const isStream = req.headers.get("Accept")?.includes("text/event-stream");
-
-      // 如果是流式响应，直接转发
-      if (isStream) {
-        console.log("[Chat Proxy] 流式响应，直接转发");
-
-        // 创建新的响应，复制原始响应的头和状态
-        const streamResponse = new NextResponse(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: response.headers,
+    // 8. 保存用户消息到数据库（异步，不影响主流程，root用户跳过）
+    let conversationId = null;
+    if (userMessage) {
+      try {
+        // 创建对话记录
+        const conversation = await pb.collection("conversations").create({
+          student_id: student_id,
+          title:
+            userMessage.substring(0, 50) +
+            (userMessage.length > 50 ? "..." : ""),
+          created_at: new Date().toISOString(),
         });
+        conversationId = conversation.id;
+        console.log("[Chat Proxy] 对话记录创建成功:", conversationId);
 
-        return streamResponse;
+        // 保存用户消息
+        await pb.collection("messages").create({
+          conversation_id: conversationId,
+          role: "user",
+          content: userMessage,
+          created_at: new Date().toISOString(),
+        });
+        console.log("[Chat Proxy] 用户消息保存成功");
+      } catch (error) {
+        console.error("[Chat Proxy] 保存用户消息失败:", error);
+        // 不中断主流程
+      }
+    }
+
+    // 9. 转发请求到coze-chat路由
+    console.log("[Chat Proxy] 转发请求到coze-chat路由");
+
+    try {
+      const { POST: cozeChatHandler } = await import("../../coze-chat/route");
+
+      // 重新构建请求（因为我们已经读取了请求体）
+      const newRequest = new NextRequest(req.url, {
+        method: req.method,
+        headers: req.headers,
+        body: JSON.stringify(requestBody || {}),
+      });
+
+      // 调用处理器
+      const response = await cozeChatHandler(newRequest);
+
+      // 10. 如果响应成功，保存助手回复并更新使用计数（root用户跳过）
+      if (response.ok) {
+        try {
+          // 读取响应内容
+          const responseData = await response.clone().json();
+          let assistantMessage = "";
+
+          // 提取助手回复内容
+          if (
+            responseData.choices &&
+            responseData.choices[0] &&
+            responseData.choices[0].message
+          ) {
+            assistantMessage = responseData.choices[0].message.content || "";
+          }
+
+          // 保存助手回复
+          if (assistantMessage && conversationId) {
+            await pb.collection("messages").create({
+              conversation_id: conversationId,
+              role: "assistant",
+              content: assistantMessage,
+              created_at: new Date().toISOString(),
+            });
+            console.log("[Chat Proxy] 助手回复保存成功");
+          }
+
+          // 更新使用计数
+          await pb.collection("students").update(student.id, {
+            used: student.used + 1,
+          });
+          console.log("[Chat Proxy] 使用计数更新成功:", student.used + 1);
+        } catch (error) {
+          console.error("[Chat Proxy] 保存助手回复或更新计数失败:", error);
+          // 不中断流程，继续返回响应
+        }
       }
 
-      cozeResponse = await response.json();
-      console.log("[Chat Proxy] Coze API 响应成功");
+      // 返回coze-chat的响应
+      return response;
     } catch (error) {
-      console.error("[Chat Proxy] Coze API 调用失败:", error);
+      console.error("[Chat Proxy] 转发到coze-chat失败:", error);
       return NextResponse.json(
-        { error: "Failed to get AI response" },
+        { error: "Failed to process AI request" },
         { status: 500 },
       );
     }
-
-    // 6. 保存助手回复到 messages 表
-    try {
-      const assistantContent =
-        cozeResponse.choices?.[0]?.message?.content || "No response";
-      console.log("[Chat Proxy] 准备保存助手回复:");
-      console.log("- conversation:", conversation.id);
-      console.log("- role: assistant");
-      console.log("- content长度:", assistantContent.length);
-
-      await pb.collection("messages").create({
-        conversation: conversation.id, // 使用正确的关联字段名
-        role: "assistant", // 使用正确的角色名称
-        content: assistantContent,
-        // 移除 created_at，让数据库自动生成
-      });
-      console.log("[Chat Proxy] 保存助手回复成功");
-    } catch (error) {
-      console.error("[Chat Proxy] 助手消息保存失败:");
-      console.error(
-        "错误类型:",
-        error instanceof Error ? error.constructor.name : typeof error,
-      );
-      console.error(
-        "错误消息:",
-        error instanceof Error ? error.message : String(error),
-      );
-      if (error && typeof error === "object" && "response" in error) {
-        console.error("响应状态:", (error as any).response?.code || "未知");
-        console.error("响应消息:", (error as any).response?.message || "未知");
-        console.error("响应数据:", (error as any).response?.data || "未知");
-      }
-      // 不中断流程，继续返回响应
-    }
-
-    // 7. 更新学生使用计数
-    try {
-      await pb.collection("students").update(student.id, {
-        used: student.used + 1,
-      });
-      console.log("[Chat Proxy] 更新使用计数:", student.used + 1);
-    } catch (error) {
-      console.error("[Chat Proxy] 使用计数更新失败:", error);
-      // 不中断流程，继续返回响应
-    }
-
-    // 8. 返回响应给前端
-    console.log("[Chat Proxy] 请求处理完成");
-    return NextResponse.json(cozeResponse);
   } catch (error) {
-    console.error("[Chat Proxy] 处理失败:", error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
-      { status: 500 },
-    );
-  }
-}
-
-// POST 请求处理
-export async function POST(req: NextRequest) {
-  try {
-    console.log("[Chat Proxy] 收到POST请求");
-
-    // 验证权限
-    const authResult = auth(req);
-    if (authResult.error) {
-      console.log("[Chat Proxy] 认证失败:", authResult.error);
-      return NextResponse.json(authResult, { status: 401 });
-    }
-
-    console.log("[Chat Proxy] 认证成功，处理请求");
-    return await handleChatProxyRequest(req);
-  } catch (error) {
-    console.error("[Chat Proxy] POST error:", error);
+    console.error("[Chat Proxy] 请求处理失败:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
