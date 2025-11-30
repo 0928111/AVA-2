@@ -32,6 +32,7 @@ export interface GraphData {
   dampingFactor?: number; // 阻尼系数（PageRank专用）
   threshold?: number; // 收敛阈值（PageRank专用）
   algo: string; // 算法标识："pagerank" | "connectivity" | "cycle" | "scc"
+  traversalMode?: string; // 遍历模式："bfs" | "dfs"
 }
 
 /**

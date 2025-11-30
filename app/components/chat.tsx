@@ -607,7 +607,7 @@ export function EditMessageModal(props: { onClose: () => void }) {
   );
 }
 
-function _Chat() {
+function _Chat(props: { isReadOnly?: boolean }) {
   type RenderMessage = ChatMessage & { preview?: boolean };
 
   const chatStore = useChatStore();
@@ -1400,8 +1400,8 @@ function _Chat() {
   );
 }
 
-export function Chat() {
+export function Chat(props: { isReadOnly?: boolean }) {
   const chatStore = useChatStore();
   const sessionIndex = chatStore.currentSessionIndex;
-  return <_Chat key={sessionIndex}></_Chat>;
+  return <_Chat key={sessionIndex} isReadOnly={props.isReadOnly}></_Chat>;
 }

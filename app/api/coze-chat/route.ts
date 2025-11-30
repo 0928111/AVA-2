@@ -7,11 +7,17 @@ function getCozeConfig() {
   const config = getServerSideConfig();
   const apiKey = config.cozeApiKey;
   const botId = config.cozeBotId;
-  const baseUrl = config.cozeBaseUrl || "https://api.coze.com";
+  const baseUrl = config.cozeBaseUrl;
 
-  if (!apiKey || !botId) {
+  if (!apiKey || !botId || !baseUrl) {
     throw new Error("Missing Coze API configuration in environment variables");
   }
+
+  console.log("[Coze Chat Route] Using config:", {
+    apiKey: apiKey.substring(0, 10) + "...", // 只打印部分密钥，保护隐私
+    botId,
+    baseUrl,
+  });
 
   return {
     apiKey,
@@ -38,9 +44,15 @@ async function createAndPoll(cozeConfig: any, payload: any) {
   console.log("[Coze Chat Route] Chat task created:", createData);
 
   if (createData.code !== 0) {
-    throw new Error(
-      `Coze API error: ${createData.msg || `Code ${createData.code}`}`,
-    );
+    // 处理Coze API返回的错误，返回更友好的错误信息
+    let errorMessage = `Coze API error: ${createData.msg || `Code ${createData.code}`}`;
+
+    // 针对特定错误码返回更友好的信息
+    if (createData.code === 4101) {
+      errorMessage = "抱歉，AI对话服务暂时不可用，请稍后再试。";
+    }
+
+    throw new Error(errorMessage);
   }
 
   const { conversation_id, id: chat_id } = createData.data;
@@ -258,4 +270,5 @@ async function handle(req: NextRequest) {
 }
 
 export const POST = handle;
-export const runtime = "edge";
+// 使用 Node.js runtime 避免 Edge runtime 的网络限制
+export const runtime = "nodejs";

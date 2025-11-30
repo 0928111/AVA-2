@@ -21,7 +21,7 @@ export default function StudentLoginPage() {
     }
 
     if (!validateStudentId(studentId)) {
-      setError("学号格式不正确，只能包含字母和数字，长度3-20位");
+      setError("学号格式不正确，应为8位数字，前4位为入学年份（如：20240001）");
       return;
     }
 
@@ -84,7 +84,7 @@ export default function StudentLoginPage() {
         </form>
 
         <div className={styles["login-footer"]}>
-          <p>学号格式：字母和数字组合，长度3-20位</p>
+          <p>学号格式：8位数字，前4位为入学年份（如：20240001）</p>
         </div>
       </div>
     </div>

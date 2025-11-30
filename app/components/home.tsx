@@ -88,6 +88,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentController, setCurrentController] =
     useState<AbortController | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(true); // 默认开启只读模式
   const chatMessagesRef = useRef<HTMLDivElement>(null);
 
   const handleNextStep = () => {
@@ -345,41 +346,46 @@ Explain the algorithm clearly and show how the PageRank values change with each 
 
                 // 验证必要的字段
                 if (graphDataToUpdate.nodes && graphDataToUpdate.links) {
-                  // 只拿两样东西用来"改图"：nodes 和 links
-                  // 其他字段（rank/currentIteration/maxIterations/dampingFactor/threshold/...）一律忽略
-                  const { nodes, links } = graphDataToUpdate;
+                  // 只在非只读模式下更新图数据
+                  if (!isReadOnly) {
+                    // 只拿两样东西用来"改图"：nodes 和 links
+                    // 其他字段（rank/currentIteration/maxIterations/dampingFactor/threshold/...）一律忽略
+                    const { nodes, links } = graphDataToUpdate;
 
-                  // 对新的 nodes/links，本地用自己的逻辑重置成第 0 轮（平均分票）
-                  const nodeCount = nodes.length;
-                  const initialRank = 1 / nodeCount; // rank 总和为 1，展示时乘以100得到正确票数
+                    // 对新的 nodes/links，本地用自己的逻辑重置成第 0 轮（平均分票）
+                    const nodeCount = nodes.length;
+                    const initialRank = 1 / nodeCount; // rank 总和为 1，展示时乘以100得到正确票数
 
-                  const initialGraphData: GraphData = {
-                    nodes: nodes.map((node: any) => ({
-                      ...node,
-                      rank: initialRank, // 重置为平均分票
-                    })),
-                    links: links.map((link: any) => ({
-                      ...link,
-                      flow: 0, // 初始化流量为0
-                    })),
-                    algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
-                    currentIteration: 0,
-                    maxIterations:
-                      PAGERANK_PROTOCOL.DEFAULT_PARAMS.MAX_ITERATIONS,
-                    dampingFactor:
-                      PAGERANK_PROTOCOL.DEFAULT_PARAMS.DAMPING_FACTOR,
-                    threshold: PAGERANK_PROTOCOL.DEFAULT_PARAMS.THRESHOLD,
-                  };
+                    const initialGraphData: GraphData = {
+                      nodes: nodes.map((node: any) => ({
+                        ...node,
+                        rank: initialRank, // 重置为平均分票
+                      })),
+                      links: links.map((link: any) => ({
+                        ...link,
+                        flow: 0, // 初始化流量为0
+                      })),
+                      algo: PAGERANK_PROTOCOL.ALGORITHMS.PAGERANK,
+                      currentIteration: 0,
+                      maxIterations:
+                        PAGERANK_PROTOCOL.DEFAULT_PARAMS.MAX_ITERATIONS,
+                      dampingFactor:
+                        PAGERANK_PROTOCOL.DEFAULT_PARAMS.DAMPING_FACTOR,
+                      threshold: PAGERANK_PROTOCOL.DEFAULT_PARAMS.THRESHOLD,
+                    };
 
-                  // 重置迭代历史，用 runVotingStep + iterations/currentIndex 接管后面的所有计算和动画
-                  setIterations([initialGraphData]);
-                  setCurrentIndex(0);
-                  console.log(
-                    "[Home] 图数据重置为第0轮，节点数:",
-                    nodeCount,
-                    "初始票数:",
-                    initialRank,
-                  );
+                    // 重置迭代历史，用 runVotingStep + iterations/currentIndex 接管后面的所有计算和动画
+                    setIterations([initialGraphData]);
+                    setCurrentIndex(0);
+                    console.log(
+                      "[Home] 图数据重置为第0轮，节点数:",
+                      nodeCount,
+                      "初始票数:",
+                      initialRank,
+                    );
+                  } else {
+                    console.log("[Home] 只读模式下，不修改图数据");
+                  }
                 } else {
                   console.warn("[Home] JSON格式不完整，缺少必要字段");
                 }

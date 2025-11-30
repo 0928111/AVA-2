@@ -15,7 +15,14 @@ export function getStudentId(): string | null {
   }
 
   try {
-    return localStorage.getItem(STUDENT_ID_KEY);
+    const id = localStorage.getItem(STUDENT_ID_KEY);
+    // 如果本地存的学号格式无效，清掉并要求重新登录
+    if (id && !validateStudentId(id)) {
+      localStorage.removeItem(STUDENT_ID_KEY);
+      console.warn("[StudentId] 本地学号无效，已清除，请重新登录");
+      return null;
+    }
+    return id;
   } catch (error) {
     console.error("[StudentId] 获取学号失败:", error);
     return null;
@@ -51,14 +58,24 @@ export function validateStudentId(studentId: string): boolean {
 
   const trimmedId = studentId.trim();
 
-  // 基本验证：不能为空，长度在3-20之间，只能包含字母数字
-  if (trimmedId.length < 3 || trimmedId.length > 20) {
+  // 特殊用户：root用户始终有效
+  if (trimmedId === "root") {
+    return true;
+  }
+
+  // 检查格式：8位数字
+  if (!/^\d{8}$/.test(trimmedId)) {
     return false;
   }
 
-  // 只允许字母和数字
-  const validPattern = /^[a-zA-Z0-9]+$/;
-  return validPattern.test(trimmedId);
+  // 检查年份：前4位应该是合理的年份（2010-2029）
+  const year = parseInt(trimmedId.substring(0, 4));
+  const currentYear = new Date().getFullYear();
+  if (year < 2010 || year > currentYear + 5) {
+    return false;
+  }
+
+  return true;
 }
 
 /**

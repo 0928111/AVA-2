@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>树的创建与遍历 · 可视化演示</title>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --bg: #f4f7ff;
+      --card: #ffffff;
+      --border: #dbe7ff;
+      --muted: #64748b;
+      --text: #0f172a;
+      --shadow: 0 12px 36px rgba(59, 130, 246, 0.14);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", "Segoe UI", "PingFang SC", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      gap: 12px;
+    }
+    header {
+      height: 56px;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(90deg, rgba(37,99,235,0.12), rgba(59,130,246,0.08));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      font-weight: 700;
+    }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 14px;
+      min-height: 0;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow);
+      min-height: 0;
+    }
+    .section {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: linear-gradient(180deg, #f8fbff, #eef3ff);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .section-title {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+    .site-nav {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f6f9ff;
+      padding: 10px 8px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow: auto;
+    }
+    .nav-group-main {
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      font-weight: 600;
+      color: #1e293b;
+      user-select: none;
+    }
+    .nav-group-main:hover {
+      border-color: var(--border);
+      background: rgba(59, 130, 246, 0.08);
+    }
+    .nav-group-main.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.24);
+    }
+    .site-page {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 12px;
+      overflow: auto;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+    }
+    .site-page h3 { font-size: 16px; margin-bottom: 6px; }
+    .site-page p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .page-hint { font-size: 12px; color: var(--primary); border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 8px; }
+    .sub-links {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .sub-links a {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #f6f9ff;
+      color: #1e293b;
+      text-decoration: none;
+    }
+    .graph-placeholder {
+      border: 1px dashed var(--border);
+      background: #f7fbff;
+      border-radius: 12px;
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #e2ebff;
+      color: #1f2a44;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #f5f7ff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-sm.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.2);
+    }
+    .right-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 0;
+    }
+    .code-wrap {
+      background: #f6f9ff;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 160px;
+      max-height: 65vh;
+      overflow: auto;
+    }
+    .code-editor {
+      width: 100%;
+      border-radius: 10px;
+      background: #0b1020;
+      color: #e9f0ff;
+      padding: 12px;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 12px;
+      border: 1px solid #151931;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      min-height: 260px;
+      resize: vertical;
+      white-space: pre;
+      outline: none;
+    }
+    .code-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:disabled { background: #b7cdfa; box-shadow: none; cursor: default; }
+    .splitter {
+      height: 12px;
+      cursor: ns-resize;
+      background: linear-gradient(90deg, rgba(37,99,235,0.12), rgba(59,130,246,0.12));
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .agent-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      padding: 12px;
+      min-height: 140px;
+    }
+    .agent-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .agent-messages {
+      flex: 1;
+      padding: 10px 0 12px;
+      overflow-y: auto;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .msg {
+      max-width: 90%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      line-height: 1.4;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #1d4ed8;
+      color: #fff;
+      border-bottom-right-radius: 3px;
+    }
+    .msg.agent {
+      align-self: flex-start;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 3px;
+      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.08);
+    }
+    .agent-input {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .agent-input textarea {
+      width: 100%;
+      resize: none;
+      min-height: 54px;
+      max-height: 120px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+      background: #f8fbff;
+    }
+    .agent-input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .btn-send {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
+    }
+    .btn-send:disabled { background: #a1b5f4; cursor: default; box-shadow: none; }
+  </style>
+</head>
+<body>
+<header>树的创建与遍历 · 可视化演示</header>
+
+<main>
+  <!-- 左侧：网站预览 + 树可视化 -->
+  <section class="panel">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">网站预览</div>
+        <div id="previewSub" class="section-sub">当前路径：首页</div>
+      </div>
+      <div class="layout-grid">
+        <nav class="site-nav">
+          <div class="nav-group" data-node="home">
+            <div class="nav-group-main active" data-node="home">首页</div>
+          </div>
+          <div class="nav-group" data-node="calligraphy">
+            <div class="nav-group-main" data-node="calligraphy">书法</div>
+          </div>
+          <div class="nav-group" data-node="opera">
+            <div class="nav-group-main" data-node="opera">京剧</div>
+          </div>
+          <div class="nav-group" data-node="tea">
+            <div class="nav-group-main" data-node="tea">茶文化</div>
+          </div>
+        </nav>
+        <section class="site-page">
+          <h3 id="pageTitle">中华文化传播网站 - 首页</h3>
+          <p id="pageDesc">
+            这里是首页。左侧导航展示一级栏目。点击不同栏目，可以观察路径和树的对应关系。
+          </p>
+          <div id="subLinks" class="sub-links"></div>
+          <p id="pageHint" class="page-hint">
+            提示：树的创建与遍历会复用 PageRank 的可视化渲染，配合 BFS / DFS 动画。
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">树可视化（复用 PageRankGraph）</div>
+        <div class="section-sub">组件：app/visual/pagerank-graph.tsx 挂载到 #graphMount</div>
+      </div>
+      <div id="graphMount" class="graph-placeholder">
+        <!-- TODO: 挂载 PageRankGraph，树形数据来自学生代码解析 -->
+        PageRankGraph 挂载占位区（同现有项目的调色板与阴影）
+      </div>
+      <div class="controls">
+        <span class="chip">遍历模式</span>
+        <button class="btn-sm active" data-mode="bfs">BFS</button>
+        <button class="btn-sm" data-mode="dfs">DFS</button>
+        <button class="btn-sm" data-step="prev">上一步</button>
+        <button class="btn-sm" data-step="next">下一步</button>
+        <button class="btn-sm" data-step="reset">重置</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右侧：代码 + Agent，中间分隔条可拖拽 -->
+  <section class="right-panel">
+    <div class="code-wrap" id="codeWrap">
+      <div class="section-header" style="padding:0;">
+        <div class="section-title">代码区（学生自由编辑 &lt;a&gt;）</div>
+        <div class="section-sub">像 txt 一样随意写，自动解析链接</div>
+      </div>
+      <textarea class="code-editor" id="codeEditor" spellcheck="false">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>中华文化传播网站 - 首页</title>
+</head>
+<body>
+  <h1>中华文化传播网站</h1>
+  <p>请选择你想了解的传统文化主题：</p>
+  <a href="calligraphy.html">书法</a>
+  <a href="opera.html">京剧</a>
+  <a href="tea.html">茶文化</a>
+  <!-- 二级页下的示例三级链接 -->
+  <a href="calligraphy-intro.html">书法简介</a>
+  <a href="opera-intro.html">京剧简介</a>
+  <a href="tea-intro.html">茶叶故事</a>
+</body>
+</html>
+      </textarea>
+      <div class="code-status-row">
+        <div class="code-status-text" id="codeStatus">已解析链接：0</div>
+        <button class="btn-primary" id="submitBtn">提交代码</button>
+      </div>
+    </div>
+
+    <div class="splitter" id="splitter" title="拖动以调整代码 / 助手区高度"></div>
+
+    <div class="agent-area" id="agentArea">
+      <div class="agent-head">
+        <span>学习助手</span>
+        <span class="section-sub">保持与主站视觉一致</span>
+      </div>
+      <div class="agent-messages" id="agentMessages">
+        <div class="msg agent">
+          👋 提示：直接编辑右侧代码，提交后左侧导航 / 树将同步，BFS / DFS 可步进查看遍历。
+        </div>
+      </div>
+      <div class="agent-input">
+        <textarea id="agentInput" placeholder="例如：DFS 为什么更早访问到“书法简介”？"></textarea>
+        <div class="agent-input-row">
+          <span>回车发送（Shift+Enter 换行）</span>
+          <button class="btn-send" id="sendBtn" disabled>发送</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ====== 基础引用 ======
+  const codeEditor = document.getElementById('codeEditor');
+  const codeStatus = document.getElementById('codeStatus');
+  const submitBtn = document.getElementById('submitBtn');
+  const graphMount = document.getElementById('graphMount');
+
+  const navMainItems = document.querySelectorAll('.nav-group-main');
+  const previewSubEl = document.getElementById('previewSub');
+  const pageTitle = document.getElementById('pageTitle');
+  const pageDesc = document.getElementById('pageDesc');
+  const subLinks = document.getElementById('subLinks');
+
+  const parentMap = {
+    'calligraphy-intro': 'calligraphy',
+    'opera-intro': 'opera',
+    'tea-intro': 'tea'
+  };
+
+  const nodeMeta = {
+    home: { href: 'index.html', label: '首页' },
+    calligraphy: { href: 'calligraphy.html', label: '书法' },
+    opera: { href: 'opera.html', label: '京剧' },
+    tea: { href: 'tea.html', label: '茶文化' },
+    'calligraphy-intro': { href: 'calligraphy-intro.html', label: '书法简介' },
+    'opera-intro': { href: 'opera-intro.html', label: '京剧简介' },
+    'tea-intro': { href: 'tea-intro.html', label: '茶叶故事' }
+  };
+
+  function buildChildMap(meta) {
+    const childMap = { home: ['calligraphy', 'opera', 'tea'] };
+    Object.keys(meta).forEach((id) => {
+      if (parentMap[id]) {
+        const p = parentMap[id];
+        childMap[p] = childMap[p] || [];
+        if (!childMap[p].includes(id)) childMap[p].push(id);
+      }
+    });
+    return childMap;
+  }
+
+  function renderSubLinks(nodeId) {
+    if (!subLinks) return;
+    subLinks.innerHTML = '';
+    const childMap = buildChildMap(nodeMeta);
+    const children = childMap[nodeId] || [];
+    children.forEach((cid) => {
+      const meta = nodeMeta[cid] || {};
+      const a = document.createElement('a');
+      a.href = meta.href || '#';
+      a.textContent = meta.label || cid;
+      subLinks.appendChild(a);
+    });
+    if (!children.length) {
+      const meta = nodeMeta[nodeId] || {};
+      const a = document.createElement('a');
+      a.href = meta.href || '#';
+      a.textContent = meta.label || nodeId;
+      subLinks.appendChild(a);
+    }
+  }
+
+  function getTextByNode(nodeId) {
+    switch (nodeId) {
+      case 'home': return { path: '首页', title: '中华文化传播网站 - 首页', desc: '首页。左侧导航进入书法、京剧和茶文化等页面。' };
+      case 'calligraphy': return { path: '首页 / 书法', title: '书法 - 栏目页', desc: '书法栏目页，下有“书法简介”等子节点。' };
+      case 'opera': return { path: '首页 / 京剧', title: '京剧 - 栏目页', desc: '京剧栏目页，下有“京剧简介”等子节点。' };
+      case 'tea': return { path: '首页 / 茶文化', title: '茶文化 - 栏目页', desc: '茶文化栏目页，下有“茶叶故事”等子节点。' };
+      case 'calligraphy-intro': return { path: '首页 / 书法 / 书法简介', title: '书法简介', desc: '示例子页面：树的第三层演示。' };
+      case 'opera-intro': return { path: '首页 / 京剧 / 京剧简介', title: '京剧简介', desc: '示例子页面：树的第三层演示。' };
+      case 'tea-intro': return { path: '首页 / 茶文化 / 茶叶故事', title: '茶叶故事', desc: '示例子页面：树的第三层演示。' };
+      default: return { path: '未知路径', title: '未定义页面', desc: '占位节点，可扩展。' };
+    }
+  }
+
+  function updatePageByNode(nodeId) {
+    const info = getTextByNode(nodeId);
+    previewSubEl.textContent = '当前路径：' + info.path;
+    pageTitle.textContent = info.title;
+    pageDesc.textContent = info.desc;
+    navMainItems.forEach((m) => m.classList.remove('active'));
+    const main = document.querySelector('.nav-group-main[data-node="' + nodeId + '"]');
+    if (main) main.classList.add('active');
+    renderSubLinks(nodeId);
+  }
+
+  navMainItems.forEach((main) => {
+    main.addEventListener('click', () => {
+      const nodeId = main.dataset.node;
+      updatePageByNode(nodeId);
+      // TODO: 同步高亮到 PageRankGraph
+    });
+  });
+
+  // ====== 解析代码区中的 <a href>，驱动导航/树 ======
+  function parseLinksAndApply(isSubmit = false) {
+    const linkRegex = /<a\s+href\s*=\s*"([^"]+)"\s*>([^<]+)<\/a>/gi;
+    const raw = codeEditor ? codeEditor.innerText || '' : '';
+    let parsedCount = 0;
+    let match;
+    while ((match = linkRegex.exec(raw)) !== null) {
+      const href = match[1];
+      const label = match[2];
+      const normalized = href.toLowerCase();
+      let slot = '';
+      if (normalized.includes('calligraphy-intro')) slot = 'calligraphy-intro';
+      else if (normalized.includes('opera-intro')) slot = 'opera-intro';
+      else if (normalized.includes('tea-intro')) slot = 'tea-intro';
+      else if (normalized.includes('calligraphy')) slot = 'calligraphy';
+      else if (normalized.includes('opera')) slot = 'opera';
+      else if (normalized.includes('tea')) slot = 'tea';
+      if (slot) {
+        nodeMeta[slot] = { href, label };
+        parsedCount++;
+      }
+    }
+    if (codeStatus) codeStatus.textContent = '已解析链接：' + parsedCount;
+
+    // 更新左侧导航、树节点文本
+    Object.keys(nodeMeta).forEach((id) => {
+      const meta = nodeMeta[id];
+      const target = document.querySelector('.nav-group-main[data-node="' + id + '"]');
+      if (target) target.textContent = meta.label;
+      const treeNode = document.querySelector('.tree-node[data-node="' + id + '"]');
+      if (treeNode) treeNode.textContent = meta.label;
+    });
+
+    // 更新三级链接区域
+    const activeMain = document.querySelector('.nav-group-main.active');
+    const activeId = activeMain ? activeMain.dataset.node : 'home';
+    renderSubLinks(activeId);
+
+    if (isSubmit) {
+      // TODO: 将 nodeMeta 转为树形节点/边数据，dispatch 到 PageRankGraph（保持无环）
+      graphMount.textContent = '已提交合法超链接，树数据将喂给 PageRankGraph 渲染。';
+    }
+  }
+
+  // 初始解析
+  updatePageByNode('home');
+  parseLinksAndApply(false);
+  submitBtn.addEventListener('click', () => parseLinksAndApply(true));
+
+  // ====== 遍历模式步进 ======
+  const modeButtons = document.querySelectorAll('.btn-sm[data-mode]');
+  const stepButtons = document.querySelectorAll('.btn-sm[data-step]');
+  let mode = 'bfs';
+  let stepIndex = 0;
+  const bfsOrder = ['home', 'calligraphy', 'opera', 'tea', 'calligraphy-intro', 'opera-intro', 'tea-intro'];
+  const dfsOrder = ['home', 'calligraphy', 'calligraphy-intro', 'opera', 'opera-intro', 'tea', 'tea-intro'];
+
+  modeButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      modeButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      stepIndex = 0;
+      updatePageByNode('home');
+      // TODO: 将模式传给 PageRankGraph 或遍历控制逻辑
+    });
+  });
+
+  stepButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.step;
+      const order = mode === 'bfs' ? bfsOrder : dfsOrder;
+      if (action === 'next') {
+        if (stepIndex < order.length) {
+          updatePageByNode(order[stepIndex]);
+          stepIndex++;
+        }
+      } else if (action === 'prev') {
+        stepIndex = Math.max(1, stepIndex - 1);
+        updatePageByNode(order[stepIndex - 1]);
+      } else if (action === 'reset') {
+        stepIndex = 0;
+        updatePageByNode('home');
+      }
+      // TODO: 同步步骤到 PageRankGraph 高亮
+    });
+  });
+
+  // ====== Agent 输入 ======
+  const agentInput = document.getElementById('agentInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const agentMessages = document.getElementById('agentMessages');
+
+  agentInput.addEventListener('input', () => {
+    const val = agentInput.value.trim();
+    sendBtn.disabled = val.length === 0;
+  });
+
+  agentInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!sendBtn.disabled) sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  function sendMessage() {
+    const text = agentInput.value.trim();
+    if (!text) return;
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg user';
+    userMsg.textContent = text;
+    agentMessages.appendChild(userMsg);
+    const reply = document.createElement('div');
+    reply.className = 'msg agent';
+    reply.textContent = '【Demo】可以切换 BFS / DFS，看节点高亮顺序如何变化。';
+    agentMessages.appendChild(reply);
+    agentMessages.scrollTop = agentMessages.scrollHeight;
+    agentInput.value = '';
+    sendBtn.disabled = true;
+  }
+
+  // ====== 代码区与助手区之间的可拖拽分隔 ======
+  const splitter = document.getElementById('splitter');
+  const codeWrap = document.getElementById('codeWrap');
+  const agentArea = document.getElementById('agentArea');
+  let isDragging = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  splitter.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startY = e.clientY;
+    startHeight = codeWrap.getBoundingClientRect().height;
+    document.body.style.userSelect = 'none';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const delta = e.clientY - startY;
+    const newHeight = Math.max(140, startHeight + delta);
+    codeWrap.style.flex = '0 0 ' + newHeight + 'px';
+    agentArea.style.flex = '1 1 auto';
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    document.body.style.userSelect = '';
+  });
+</script>
+</body>
+</html>

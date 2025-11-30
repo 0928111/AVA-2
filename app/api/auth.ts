@@ -48,7 +48,8 @@ export function auth(req: NextRequest) {
 
   // if user does not provide an api key, inject system api key
   if (!token) {
-    const apiKey = serverConfig.apiKey;
+    // 检查所有可能的API密钥配置，优先使用Coze API密钥
+    const apiKey = serverConfig.cozeApiKey || serverConfig.apiKey;
     if (apiKey) {
       console.log("[Auth] use system api key");
       req.headers.set("Authorization", `Bearer ${apiKey}`);

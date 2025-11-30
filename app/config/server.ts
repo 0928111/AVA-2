@@ -47,6 +47,7 @@ export const getServerSideConfig = () => {
   const isVercel = !!process.env.VERCEL;
   const cozeApiKey = process.env.COZE_API_KEY;
   const cozeBotId = process.env.COZE_BOT_ID;
+  // 默认使用中文站域名（与你的 key/bot 同区域）
   const cozeUrl = process.env.COZE_URL || "https://api.coze.cn";
   const cozeBaseUrl = process.env.COZE_BASE_URL || "https://api.coze.cn";
 

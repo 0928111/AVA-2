@@ -1,5 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
-import Home from "./components/home";
+import TreeVisualization from "./components/tree-visualization";
 
 import { getServerSideConfig } from "./config/server";
 
@@ -8,7 +8,7 @@ const serverConfig = getServerSideConfig();
 export default async function App() {
   return (
     <>
-      <Home />
+      <TreeVisualization />
       {serverConfig?.isVercel && <Analytics />}
     </>
   );

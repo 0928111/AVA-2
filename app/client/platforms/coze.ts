@@ -100,181 +100,257 @@ export class CozeApi implements LLMApi {
     const userId = `user_${sessionId}`;
 
     // 获取学号信息（从ChatOptions中获取）
-    const studentId = options.studentId || this.getStudentIdFromStorage();
+    const studentId =
+      options.studentId || this.getStudentIdFromStorage() || "default"; // 确保studentId始终是字符串
 
     const shouldStream = !!options.config.stream;
     const controller = new AbortController();
     options.onController?.(controller);
 
-    try {
-      // 使用新的聊天代理路由 - 支持配额管理和消息存档
-      const chatPath = "/api/chat/proxy";
+    // 重试配置
+    const maxRetries = 2;
+    const retryDelay = 1000;
 
-      // 构建请求payload - 适配新的代理路由格式
-      const requestPayload = {
-        student_id: studentId, // 学号放在顶层
-        messages: messages,
-        bot_id: this.botId,
-      };
+    // 执行请求的函数，支持重试
+    const executeRequest = async (attempt: number): Promise<void> => {
+      try {
+        // 使用新的聊天代理路由 - 支持配额管理和消息存档
+        const chatPath = "/api/chat/proxy";
 
-      console.log("[Coze-Chat] Request payload: ", requestPayload);
-
-      // 前端只发送 JSON 请求体，认证信息由后端 /api/coze-chat 统一处理
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      };
-
-      const chatPayload = {
-        method: "POST",
-        body: JSON.stringify(requestPayload),
-        signal: controller.signal,
-        headers: headers,
-      };
-
-      // 设置请求超时
-      const requestTimeoutId = setTimeout(
-        () => controller.abort(),
-        30000, // 30秒超时
-      );
-
-      if (shouldStream) {
-        // 流式响应处理
-        let responseText = "";
-        let finished = false;
-
-        const finish = () => {
-          if (!finished) {
-            options.onFinish(responseText);
-            finished = true;
-          }
+        // 构建请求payload - 适配新的代理路由格式
+        const requestPayload = {
+          student_id: studentId, // 学号放在顶层
+          messages: messages,
+          bot_id: this.botId,
         };
 
-        controller.signal.onabort = finish;
+        console.log(
+          `[Coze-Chat] Request payload (attempt ${attempt + 1}): `,
+          requestPayload,
+        );
 
-        fetchEventSource(chatPath, {
-          ...chatPayload,
-          async onopen(res) {
-            clearTimeout(requestTimeoutId);
-            const contentType = res.headers.get("content-type");
-            console.log("[Coze-Chat] Response content type: ", contentType);
+        // 前端只发送 JSON 请求体，认证信息由后端 /api/coze-chat 统一处理
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        };
 
-            if (contentType?.startsWith("text/plain")) {
-              responseText = await res.clone().text();
-              return finish();
+        const chatPayload = {
+          method: "POST",
+          body: JSON.stringify(requestPayload),
+          signal: controller.signal,
+          headers: headers,
+        };
+
+        // 设置请求超时
+        const requestTimeoutId = setTimeout(
+          () => controller.abort(),
+          30000, // 30秒超时
+        );
+
+        if (shouldStream) {
+          // 流式响应处理
+          let responseText = "";
+          let finished = false;
+
+          const finish = () => {
+            if (!finished) {
+              options.onFinish(responseText);
+              finished = true;
             }
+          };
 
-            if (
-              !res.ok ||
-              !res.headers
-                .get("content-type")
-                ?.startsWith(EventStreamContentType) ||
-              res.status !== 200
-            ) {
-              const responseTexts = [responseText];
-              let extraInfo = await res.clone().text();
-              try {
-                const resJson = await res.clone().json();
-                extraInfo = prettyObject(resJson);
-              } catch {}
+          controller.signal.onabort = finish;
 
-              if (res.status === 401) {
-                responseTexts.push(Locale.Error.Unauthorized);
+          await fetchEventSource(chatPath, {
+            ...chatPayload,
+            async onopen(res) {
+              clearTimeout(requestTimeoutId);
+              const contentType = res.headers.get("content-type");
+              console.log("[Coze-Chat] Response content type: ", contentType);
+
+              if (contentType?.startsWith("text/plain")) {
+                responseText = await res.clone().text();
+                return finish();
               }
 
-              // 处理配额不足的情况
-              if (res.status === 429) {
-                responseTexts.push("本期额度已用完，请稍后再试");
-              }
+              if (
+                !res.ok ||
+                !res.headers
+                  .get("content-type")
+                  ?.startsWith(EventStreamContentType) ||
+                res.status !== 200
+              ) {
+                const responseTexts = [responseText];
+                let extraInfo = await res.clone().text();
+                try {
+                  const resJson = await res.clone().json();
+                  extraInfo = prettyObject(resJson);
+                } catch {}
 
-              if (extraInfo) {
-                responseTexts.push(extraInfo);
-              }
-
-              responseText = responseTexts.join("\n\n");
-              return finish();
-            }
-          },
-          onmessage(msg) {
-            if (msg.data === "[DONE]" || finished) {
-              return finish();
-            }
-
-            const text = msg.data;
-            try {
-              const json = JSON.parse(text);
-
-              // 新的API路由返回OpenAI兼容格式
-              if (json.choices && json.choices[0] && json.choices[0].message) {
-                const content = json.choices[0].message.content;
-                if (content) {
-                  const delta = content.substring(responseText.length);
-                  responseText = content;
-                  options.onUpdate?.(responseText, delta);
+                if (res.status === 401) {
+                  responseTexts.push(Locale.Error.Unauthorized);
                 }
-              } else {
-                console.error("[Coze-Chat] Unexpected response format:", json);
-                responseText = `API返回格式错误`;
+
+                // 处理配额不足的情况
+                if (res.status === 429) {
+                  responseTexts.push("本期额度已用完，请稍后再试");
+                }
+
+                if (extraInfo) {
+                  responseTexts.push(extraInfo);
+                }
+
+                responseText = responseTexts.join("\n\n");
+                return finish();
               }
-            } catch (e) {
-              console.error("[Coze-Chat] Parse error", text, msg);
-              // 如果不是JSON格式，直接作为文本处理
-              if (text && responseText.length === 0) {
-                responseText = text;
-                options.onUpdate?.(responseText, text);
+            },
+            onmessage(msg) {
+              if (msg.data === "[DONE]" || finished) {
+                return finish();
               }
+
+              const text = msg.data;
+              try {
+                const json = JSON.parse(text);
+
+                // 新的API路由返回OpenAI兼容格式
+                if (
+                  json.choices &&
+                  json.choices[0] &&
+                  json.choices[0].message
+                ) {
+                  const content = json.choices[0].message.content;
+                  if (content) {
+                    const delta = content.substring(responseText.length);
+                    responseText = content;
+                    options.onUpdate?.(responseText, delta);
+                  }
+                } else {
+                  console.error(
+                    "[Coze-Chat] Unexpected response format:",
+                    json,
+                  );
+                  responseText = `API返回格式错误`;
+                }
+              } catch (e) {
+                console.error("[Coze-Chat] Parse error", text, msg);
+                // 如果不是JSON格式，直接作为文本处理
+                if (text && responseText.length === 0) {
+                  responseText = text;
+                  options.onUpdate?.(responseText, text);
+                }
+              }
+            },
+            onclose() {
+              finish();
+            },
+            onerror(e) {
+              console.error(
+                `[Coze-Chat] Stream error (attempt ${attempt + 1}):`,
+                e,
+              );
+              // 不抛出异常，避免中断执行
+              options.onError?.(e);
+              finish();
+            },
+            openWhenHidden: true,
+          });
+        } else {
+          // 非流式响应
+          const res = await fetch(chatPath, chatPayload);
+          clearTimeout(requestTimeoutId);
+
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error(
+              `[Coze-Chat] HTTP ${res.status} error (attempt ${attempt + 1}):`,
+              errorText,
+            );
+
+            // 处理配额不足的情况 - 不重试
+            if (res.status === 429) {
+              throw new Error("本期额度已用完，请稍后再试");
             }
-          },
-          onclose() {
-            finish();
-          },
-          onerror(e) {
-            options.onError?.(e);
-            throw e;
-          },
-          openWhenHidden: true,
-        });
-      } else {
-        // 非流式响应
-        const res = await fetch(chatPath, chatPayload);
-        clearTimeout(requestTimeoutId);
 
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error(`[Coze-Chat] HTTP ${res.status} error:`, errorText);
+            // 处理认证错误 - 不重试
+            if (res.status === 401) {
+              throw new Error(Locale.Error.Unauthorized);
+            }
 
-          // 处理配额不足的情况
-          if (res.status === 429) {
-            throw new Error("本期额度已用完，请稍后再试");
+            // 其他HTTP错误，尝试重试
+            if (attempt < maxRetries) {
+              console.log(`[Coze-Chat] Retrying in ${retryDelay}ms...`);
+              await new Promise((resolve) => setTimeout(resolve, retryDelay));
+              return executeRequest(attempt + 1);
+            }
+
+            // 重试次数用尽，抛出错误
+            throw new Error(`HTTP ${res.status}: ${errorText}`);
           }
 
-          throw new Error(`HTTP ${res.status}: ${errorText}`);
+          const resJson = await res.json();
+
+          // 新的API路由返回OpenAI兼容格式
+          if (
+            resJson.choices &&
+            resJson.choices[0] &&
+            resJson.choices[0].message
+          ) {
+            const message = resJson.choices[0].message.content;
+            console.log("[Coze-Chat] Received complete response:", message);
+            options.onFinish(message);
+          } else if (resJson.error) {
+            const errorMsg = resJson.error.message || "Unknown error";
+            console.error("[Coze-Chat] API error:", errorMsg);
+            options.onError?.(new Error(`API Error: ${errorMsg}`));
+          } else {
+            console.error("[Coze-Chat] Unexpected response format:", resJson);
+            options.onError?.(new Error("Unexpected response format from API"));
+          }
+        }
+      } catch (e) {
+        console.error(
+          `[Coze-Chat] Request failed (attempt ${attempt + 1}):`,
+          e,
+        );
+
+        // 检查是否是网络错误
+        const isNetworkError =
+          e instanceof Error &&
+          (e.message.includes("fetch failed") ||
+            e.message.includes("ECONNREFUSED") ||
+            e.message.includes("NetworkError") ||
+            e.message.includes("Connection refused"));
+
+        // 如果是网络错误且还有重试次数，进行重试
+        if (isNetworkError && attempt < maxRetries) {
+          console.log(
+            `[Coze-Chat] Network error, retrying in ${retryDelay}ms...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          return executeRequest(attempt + 1);
         }
 
-        const resJson = await res.json();
-
-        // 新的API路由返回OpenAI兼容格式
-        if (
-          resJson.choices &&
-          resJson.choices[0] &&
-          resJson.choices[0].message
-        ) {
-          const message = resJson.choices[0].message.content;
-          console.log("[Coze-Chat] Received complete response:", message);
-          options.onFinish(message);
-        } else if (resJson.error) {
-          const errorMsg = resJson.error.message || "Unknown error";
-          console.error("[Coze-Chat] API error:", errorMsg);
-          options.onError?.(new Error(`API Error: ${errorMsg}`));
-        } else {
-          console.error("[Coze-Chat] Unexpected response format:", resJson);
-          options.onError?.(new Error("Unexpected response format from API"));
+        // 生成友好的错误信息
+        let errorMessage = "抱歉，AI对话服务暂时不可用，请稍后再试。";
+        if (e instanceof Error) {
+          if (e.message.includes("429")) {
+            errorMessage = "本期额度已用完，请稍后再试。";
+          } else if (e.message.includes("401")) {
+            errorMessage = "认证失败，请检查您的配置。";
+          } else if (isNetworkError) {
+            errorMessage = "网络连接失败，请检查您的网络设置或稍后再试。";
+          }
         }
+
+        // 调用错误回调，而不是抛出异常
+        options.onError?.(new Error(errorMessage));
       }
-    } catch (e) {
-      console.error("[Coze-Chat] Request failed:", e);
-      options.onError?.(e as Error);
-    }
+    };
+
+    // 执行请求
+    await executeRequest(0);
   }
 
   // 前端不再需要直接获取 Coze API Key，统一由后端 /api/coze-chat 处理
